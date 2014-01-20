@@ -1235,6 +1235,7 @@ var Main = function() {
 	this.lastStatus = "";
 	this.UseGopher = true;
 	flash.display.Sprite.call(this);
+	this.soundNew();
 	this.whatToDo = new flash.text.TextField();
 	this.whatToDo.selectable = false;
 	this.whatToDo.set_x(50);
@@ -1282,7 +1283,29 @@ $hxClasses["Main"] = Main;
 Main.__name__ = ["Main"];
 Main.__super__ = flash.display.Sprite;
 Main.prototype = $extend(flash.display.Sprite.prototype,{
-	stage_onMouseUp: function(event) {
+	pause: function() {
+		if(this.playing) {
+			this.playing = false;
+			this.channel.stop();
+		}
+	}
+	,play: function(fadeIn) {
+		if(fadeIn == null) fadeIn = 3;
+		if(this.playing != true) {
+			this.playing = true;
+			this.channel = this.sound.play(this.position);
+		}
+	}
+	,soundNew: function() {
+		this.sound = openfl.Assets.getSound("assets/yeah.ogg");
+		this.position = 0;
+		this.playing = false;
+	}
+	,channel_onSoundComplete: function(event) {
+		this.pause();
+		this.position = 0;
+	}
+	,stage_onMouseUp: function(event) {
 		tardis.Go_main_MouseUp.callFromHaxe(event.stageX,event.stageY);
 	}
 	,stage_onMouseMove: function(event) {
@@ -1304,9 +1327,13 @@ Main.prototype = $extend(flash.display.Sprite.prototype,{
 				this.Logo.addChild(new flash.display.Bitmap(openfl.Assets.getBitmapData("assets/openfl.png")));
 				this.UseGopher = false;
 			}
-		} else if(!this.UseGopher) {
-			this.Logo.addChild(new flash.display.Bitmap(openfl.Assets.getBitmapData("assets/gopher.png")));
-			this.UseGopher = true;
+			this.play();
+		} else {
+			if(!this.UseGopher) {
+				this.Logo.addChild(new flash.display.Bitmap(openfl.Assets.getBitmapData("assets/gopher.png")));
+				this.UseGopher = true;
+			}
+			this.pause();
 		}
 	}
 	,__class__: Main
@@ -1391,9 +1418,21 @@ var DefaultAssetLibrary = function() {
 	DefaultAssetLibrary.path.set("assets/gopher.png","assets/gopher.png");
 	var value = Reflect.field(openfl.AssetType,"image".toUpperCase());
 	DefaultAssetLibrary.type.set("assets/gopher.png",value);
+	DefaultAssetLibrary.path.set("assets/horray.mp3","assets/horray.mp3");
+	var value = Reflect.field(openfl.AssetType,"music".toUpperCase());
+	DefaultAssetLibrary.type.set("assets/horray.mp3",value);
+	DefaultAssetLibrary.path.set("assets/horray.ogg","assets/horray.ogg");
+	var value = Reflect.field(openfl.AssetType,"sound".toUpperCase());
+	DefaultAssetLibrary.type.set("assets/horray.ogg",value);
 	DefaultAssetLibrary.path.set("assets/openfl.png","assets/openfl.png");
 	var value = Reflect.field(openfl.AssetType,"image".toUpperCase());
 	DefaultAssetLibrary.type.set("assets/openfl.png",value);
+	DefaultAssetLibrary.path.set("assets/yeah.mp3","assets/yeah.mp3");
+	var value = Reflect.field(openfl.AssetType,"music".toUpperCase());
+	DefaultAssetLibrary.type.set("assets/yeah.mp3",value);
+	DefaultAssetLibrary.path.set("assets/yeah.ogg","assets/yeah.ogg");
+	var value = Reflect.field(openfl.AssetType,"sound".toUpperCase());
+	DefaultAssetLibrary.type.set("assets/yeah.ogg",value);
 };
 $hxClasses["DefaultAssetLibrary"] = DefaultAssetLibrary;
 DefaultAssetLibrary.__name__ = ["DefaultAssetLibrary"];
@@ -9248,10 +9287,14 @@ tardis.Pointer.copy = function(v) {
 }
 tardis.Pointer.prototype = {
 	len: function() {
-		return this.ref().length;
+		var r = this.ref();
+		if(r == null) {
+			tardis.Scheduler.panicFromHaxe("attempt to use a nil pointer to access an array or struct");
+			return 0;
+		} else return r.length;
 	}
 	,addr: function(off) {
-		if(off < 0 || off >= this.ref().length) tardis.Scheduler.panicFromHaxe("index out of range for valid pointer address");
+		if(off < 0 || off >= this.len()) tardis.Scheduler.panicFromHaxe("index out of range for valid pointer address");
 		var ret = new tardis.Pointer(this.heapObj);
 		ret.offs = this.offs.slice();
 		ret.offs[this.offs.length] = off;
@@ -9282,7 +9325,10 @@ tardis.Pointer.prototype = {
 		var _g1 = 0, _g = this.offs.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			ret = ret[this.offs[i]];
+			if(ret == null) {
+				tardis.Scheduler.panicFromHaxe("attempt to dereference a nil pointer");
+				return null;
+			} else ret = ret[this.offs[i]];
 		}
 		return ret;
 	}
@@ -10042,254 +10088,6 @@ tardis.Scheduler.ioor = function() {
 tardis.Scheduler.NumGoroutine = function() {
 	return tardis.Scheduler.grStacks.length;
 }
-tardis.Go_haxegoruntime_RunesToUTF16 = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,123,"Go_haxegoruntime_RunesToUTF16");
-	this._bds = _bds;
-	this.p_r = p_r;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_RunesToUTF16"] = tardis.Go_haxegoruntime_RunesToUTF16;
-$hxExpose(tardis.Go_haxegoruntime_RunesToUTF16, "Go_haxegoruntime_RunesToUTF16");
-tardis.Go_haxegoruntime_RunesToUTF16.__name__ = ["tardis","Go_haxegoruntime_RunesToUTF16"];
-tardis.Go_haxegoruntime_RunesToUTF16.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_RunesToUTF16.callFromHaxe = function(p_r) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_RunesToUTF16(0,[],p_r).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_RunesToUTF16.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_haxegoruntime_RunesToUTF16(_gr,[],p_r).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_RunesToUTF16.call = function(gr,_bds,p_r) {
-	return new tardis.Go_haxegoruntime_RunesToUTF16(gr,_bds,p_r);
-}
-tardis.Go_haxegoruntime_RunesToUTF16.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_RunesToUTF16.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 123;
-				this._latestBlock = 0;
-				this._latestPH = 124;
-				this._SF1 = new tardis.Go_utf16_Encode(this._goroutine,[],this.p_r);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 124;
-				this._latestBlock = -1;
-				this._t0 = this._SF1.res();
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_RunesToUTF16
-});
-tardis._Go.Go_utf16_init = function(gr,_bds) {
-	this._Next = 0;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,124,"Go_utf16_init");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_utf16_init"] = tardis._Go.Go_utf16_init;
-tardis._Go.Go_utf16_init.__name__ = ["tardis","_Go","Go_utf16_init"];
-tardis._Go.Go_utf16_init.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_utf16_init.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_utf16_init(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis._Go.Go_utf16_init.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_utf16_init(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis._Go.Go_utf16_init.call = function(gr,_bds) {
-	return new tardis._Go.Go_utf16_init(gr,_bds);
-}
-tardis._Go.Go_utf16_init.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_utf16_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn1: function() {
-		tardis.Go.utf16_init_36_guard.store(true);
-		this._Next = 2;
-	}
-	,SubFn0: function() {
-		var _t0;
-		_t0 = tardis.Go.utf16_init_36_guard.ref();
-		this._Next = _t0?2:1;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 124;
-				this._latestBlock = 0;
-				this.SubFn0();
-				break;
-			case 1:
-				this._latestPH = 124;
-				this._latestBlock = 1;
-				tardis.Go.utf16_init_36_guard.store(true);
-				this._Next = 2;
-				break;
-			case 2:
-				this._latestPH = 124;
-				this._latestBlock = 2;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis._Go.Go_utf16_init
-});
-tardis.Go_haxegoruntime_M1 = function(gr,_bds,p_rx,p_typ,p_meth,p_a1) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,216,"Go_haxegoruntime_M1");
-	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	this.p_a1 = p_a1;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_M1"] = tardis.Go_haxegoruntime_M1;
-$hxExpose(tardis.Go_haxegoruntime_M1, "Go_haxegoruntime_M1");
-tardis.Go_haxegoruntime_M1.__name__ = ["tardis","Go_haxegoruntime_M1"];
-tardis.Go_haxegoruntime_M1.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M1.callFromHaxe = function(p_rx,p_typ,p_meth,p_a1) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M1(0,[],p_rx,p_typ,p_meth,p_a1).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M1.callFromRT = function(_gr,p_rx,p_typ,p_meth,p_a1) {
-	var _sf = new tardis.Go_haxegoruntime_M1(_gr,[],p_rx,p_typ,p_meth,p_a1).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M1.call = function(gr,_bds,p_rx,p_typ,p_meth,p_a1) {
-	return new tardis.Go_haxegoruntime_M1(gr,_bds,p_rx,p_typ,p_meth,p_a1);
-}
-tardis.Go_haxegoruntime_M1.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M1.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 216;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_M1
-});
-tardis._Go.Go_haxegoruntime_funcline_go = function(gr,_bds,p_arg0,p_arg1) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,415,"Go_haxegoruntime_funcline_go");
-	this._bds = _bds;
-	this.p_arg0 = p_arg0;
-	this.p_arg1 = p_arg1;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_funcline_go"] = tardis._Go.Go_haxegoruntime_funcline_go;
-tardis._Go.Go_haxegoruntime_funcline_go.__name__ = ["tardis","_Go","Go_haxegoruntime_funcline_go"];
-tardis._Go.Go_haxegoruntime_funcline_go.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_funcline_go.callFromHaxe = function(p_arg0,p_arg1) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_funcline_go(0,[],p_arg0,p_arg1).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_funcline_go.callFromRT = function(_gr,p_arg0,p_arg1) {
-	var _sf = new tardis._Go.Go_haxegoruntime_funcline_go(_gr,[],p_arg0,p_arg1).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_funcline_go.call = function(gr,_bds,p_arg0,p_arg1) {
-	return new tardis._Go.Go_haxegoruntime_funcline_go(gr,_bds,p_arg0,p_arg1);
-}
-tardis._Go.Go_haxegoruntime_funcline_go.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_funcline_go.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.funcline_go() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 415;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.funcline_go() not yet implemented");
-				this._latestPH = 416;
-				tardis.Scheduler.panic(this._goroutine,this._t0);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 416;
-				this._latestBlock = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_funcline_go
-});
 tardis._Go.Go_utf8_decodeRuneInStringInternal = function(gr,_bds,p_s) {
 	this._Next = 0;
 	this._t56 = false;
@@ -10349,7 +10147,7 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal = function(gr,_bds,p_s) {
 	this._t2 = 0;
 	this._t1 = false;
 	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,673,"Go_utf8_decodeRuneInStringInternal");
+	tardis.StackFrameBasis.call(this,gr,437,"Go_utf8_decodeRuneInStringInternal");
 	this._bds = _bds;
 	this.p_s = p_s;
 	tardis.Scheduler.push(gr,this);
@@ -10396,7 +10194,7 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 		var _t52;
 		var _t53;
 		var _t55;
-		this._latestPH = 740;
+		this._latestPH = 504;
 		_t41 = this._t2 & 7 & 255;
 		_t42 = _t41;
 		_t43 = _t42 << tardis.Int64.getLow(new tardis.Int64(0,18));
@@ -10411,27 +10209,27 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 		_t52 = this._t37 & 63 & 255;
 		_t53 = _t52;
 		this._t54 = tardis.Force.toInt32(_t51 | _t53);
-		this._latestPH = 741;
+		this._latestPH = 505;
 		_t55 = this._t54 <= 65535;
 		this._Next = _t55?35:37;
 	}
 	,SubFn19: function() {
 		var _t40;
-		this._latestPH = 734;
+		this._latestPH = 498;
 		_t40 = tardis.Force.uintCompare(192,this._t37) <= 0;
 		this._Next = _t40?30:31;
 	}
 	,SubFn18: function() {
 		var _t39;
-		this._latestPH = 739;
+		this._latestPH = 503;
 		_t39 = tardis.Force.uintCompare(this._t2,248) < 0;
 		this._Next = _t39?33:34;
 	}
 	,SubFn17: function() {
 		var _t38;
-		this._latestPH = 733;
+		this._latestPH = 497;
 		this._t37 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(3);
-		this._latestPH = 734;
+		this._latestPH = 498;
 		_t38 = tardis.Force.uintCompare(this._t37,128) < 0;
 		this._Next = _t38?30:32;
 	}
@@ -10442,13 +10240,13 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 	}
 	,SubFn15: function() {
 		var _t35;
-		this._latestPH = 723;
+		this._latestPH = 487;
 		_t35 = 55296 <= this._t32;
 		this._Next = _t35?27:26;
 	}
 	,SubFn14: function() {
 		var _t34;
-		this._latestPH = 730;
+		this._latestPH = 494;
 		_t34 = this._t0 < 4;
 		this._Next = _t34?28:29;
 	}
@@ -10463,7 +10261,7 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 		var _t30;
 		var _t31;
 		var _t33;
-		this._latestPH = 719;
+		this._latestPH = 483;
 		_t23 = this._t2 & 15 & 255;
 		_t24 = _t23;
 		_t25 = _t24 << tardis.Int64.getLow(new tardis.Int64(0,12));
@@ -10474,33 +10272,33 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 		_t30 = this._t19 & 63 & 255;
 		_t31 = _t30;
 		this._t32 = tardis.Force.toInt32(_t29 | _t31);
-		this._latestPH = 720;
+		this._latestPH = 484;
 		_t33 = this._t32 <= 2047;
 		this._Next = _t33?23:24;
 	}
 	,SubFn12: function() {
 		var _t22;
-		this._latestPH = 713;
+		this._latestPH = 477;
 		_t22 = tardis.Force.uintCompare(192,this._t19) <= 0;
 		this._Next = _t22?18:19;
 	}
 	,SubFn11: function() {
 		var _t21;
-		this._latestPH = 718;
+		this._latestPH = 482;
 		_t21 = tardis.Force.uintCompare(this._t2,240) < 0;
 		this._Next = _t21?21:22;
 	}
 	,SubFn10: function() {
 		var _t20;
-		this._latestPH = 712;
+		this._latestPH = 476;
 		this._t19 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(2);
-		this._latestPH = 713;
+		this._latestPH = 477;
 		_t20 = tardis.Force.uintCompare(this._t19,128) < 0;
 		this._Next = _t20?18:20;
 	}
 	,SubFn9: function() {
 		var _t18;
-		this._latestPH = 709;
+		this._latestPH = 473;
 		_t18 = this._t0 < 3;
 		this._Next = _t18?16:17;
 	}
@@ -10511,66 +10309,66 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 		var _t14;
 		var _t15;
 		var _t17;
-		this._latestPH = 701;
+		this._latestPH = 465;
 		_t11 = this._t2 & 31 & 255;
 		_t12 = _t11;
 		_t13 = _t12 << tardis.Int64.getLow(new tardis.Int64(0,6));
 		_t14 = this._t7 & 63 & 255;
 		_t15 = _t14;
 		this._t16 = tardis.Force.toInt32(_t13 | _t15);
-		this._latestPH = 702;
+		this._latestPH = 466;
 		_t17 = this._t16 <= 127;
 		this._Next = _t17?14:15;
 	}
 	,SubFn7: function() {
 		var _t10;
-		this._latestPH = 695;
+		this._latestPH = 459;
 		_t10 = tardis.Force.uintCompare(192,this._t7) <= 0;
 		this._Next = _t10?9:10;
 	}
 	,SubFn6: function() {
 		var _t9;
-		this._latestPH = 700;
+		this._latestPH = 464;
 		_t9 = tardis.Force.uintCompare(this._t2,224) < 0;
 		this._Next = _t9?12:13;
 	}
 	,SubFn5: function() {
 		var _t8;
-		this._latestPH = 694;
+		this._latestPH = 458;
 		this._t7 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(1);
-		this._latestPH = 695;
+		this._latestPH = 459;
 		_t8 = tardis.Force.uintCompare(this._t7,128) < 0;
 		this._Next = _t8?9:11;
 	}
 	,SubFn4: function() {
 		var _t6;
-		this._latestPH = 691;
+		this._latestPH = 455;
 		_t6 = this._t0 < 2;
 		this._Next = _t6?7:8;
 	}
 	,SubFn3: function() {
 		var _t5;
-		this._latestPH = 686;
+		this._latestPH = 450;
 		_t5 = tardis.Force.uintCompare(this._t2,192) < 0;
 		this._Next = _t5?5:6;
 	}
 	,SubFn2: function() {
-		this._latestPH = 682;
+		this._latestPH = 446;
 		this._t4 = this._t2;
 	}
 	,SubFn1: function() {
 		var _t3;
-		this._latestPH = 678;
+		this._latestPH = 442;
 		this._t2 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(0);
-		this._latestPH = 681;
+		this._latestPH = 445;
 		_t3 = tardis.Force.uintCompare(this._t2,128) < 0;
 		this._Next = _t3?3:4;
 	}
 	,SubFn0: function() {
 		var _t1;
-		this._latestPH = 674;
+		this._latestPH = 438;
 		this._t0 = tardis.Force.toUTF8length(this._goroutine,this.p_s);
-		this._latestPH = 675;
+		this._latestPH = 439;
 		_t1 = this._t0 < 1;
 		this._Next = _t1?1:2;
 	}
@@ -10579,245 +10377,245 @@ tardis._Go.Go_utf8_decodeRuneInStringInternal.prototype = $extend(tardis.StackFr
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 673;
+				this._latestPH = 437;
 				this._latestBlock = 0;
 				this.SubFn0();
 				break;
 			case 1:
-				this._latestPH = 673;
+				this._latestPH = 437;
 				this._latestBlock = 1;
-				this._latestPH = 676;
+				this._latestPH = 440;
 				this._res = { r0 : 65533, r1 : 0, r2 : true};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 2:
-				this._latestPH = 676;
+				this._latestPH = 440;
 				this._latestBlock = 2;
 				this.SubFn1();
 				break;
 			case 3:
-				this._latestPH = 676;
+				this._latestPH = 440;
 				this._latestBlock = 3;
-				this._latestPH = 682;
+				this._latestPH = 446;
 				this._t4 = this._t2;
-				this._latestPH = 682;
+				this._latestPH = 446;
 				this._res = { r0 : this._t4, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 4:
-				this._latestPH = 682;
+				this._latestPH = 446;
 				this._latestBlock = 4;
 				this.SubFn3();
 				break;
 			case 5:
-				this._latestPH = 682;
+				this._latestPH = 446;
 				this._latestBlock = 5;
-				this._latestPH = 687;
+				this._latestPH = 451;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 6:
-				this._latestPH = 687;
+				this._latestPH = 451;
 				this._latestBlock = 6;
 				this.SubFn4();
 				break;
 			case 7:
-				this._latestPH = 687;
+				this._latestPH = 451;
 				this._latestBlock = 7;
-				this._latestPH = 692;
+				this._latestPH = 456;
 				this._res = { r0 : 65533, r1 : 1, r2 : true};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 8:
-				this._latestPH = 692;
+				this._latestPH = 456;
 				this._latestBlock = 8;
 				this.SubFn5();
 				break;
 			case 9:
-				this._latestPH = 692;
+				this._latestPH = 456;
 				this._latestBlock = 9;
-				this._latestPH = 696;
+				this._latestPH = 460;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 10:
-				this._latestPH = 696;
+				this._latestPH = 460;
 				this._latestBlock = 10;
 				this.SubFn6();
 				break;
 			case 11:
-				this._latestPH = 696;
+				this._latestPH = 460;
 				this._latestBlock = 11;
 				this.SubFn7();
 				break;
 			case 12:
-				this._latestPH = 696;
+				this._latestPH = 460;
 				this._latestBlock = 12;
 				this.SubFn8();
 				break;
 			case 13:
-				this._latestPH = 696;
+				this._latestPH = 460;
 				this._latestBlock = 13;
 				this.SubFn9();
 				break;
 			case 14:
-				this._latestPH = 696;
+				this._latestPH = 460;
 				this._latestBlock = 14;
-				this._latestPH = 703;
+				this._latestPH = 467;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 15:
-				this._latestPH = 703;
+				this._latestPH = 467;
 				this._latestBlock = 15;
-				this._latestPH = 705;
+				this._latestPH = 469;
 				this._res = { r0 : this._t16, r1 : 2, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 16:
-				this._latestPH = 705;
+				this._latestPH = 469;
 				this._latestBlock = 16;
-				this._latestPH = 710;
+				this._latestPH = 474;
 				this._res = { r0 : 65533, r1 : 1, r2 : true};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 17:
-				this._latestPH = 710;
+				this._latestPH = 474;
 				this._latestBlock = 17;
 				this.SubFn10();
 				break;
 			case 18:
-				this._latestPH = 710;
+				this._latestPH = 474;
 				this._latestBlock = 18;
-				this._latestPH = 714;
+				this._latestPH = 478;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 19:
-				this._latestPH = 714;
+				this._latestPH = 478;
 				this._latestBlock = 19;
 				this.SubFn11();
 				break;
 			case 20:
-				this._latestPH = 714;
+				this._latestPH = 478;
 				this._latestBlock = 20;
 				this.SubFn12();
 				break;
 			case 21:
-				this._latestPH = 714;
+				this._latestPH = 478;
 				this._latestBlock = 21;
 				this.SubFn13();
 				break;
 			case 22:
-				this._latestPH = 714;
+				this._latestPH = 478;
 				this._latestBlock = 22;
 				this.SubFn14();
 				break;
 			case 23:
-				this._latestPH = 714;
+				this._latestPH = 478;
 				this._latestBlock = 23;
-				this._latestPH = 721;
+				this._latestPH = 485;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 24:
-				this._latestPH = 721;
+				this._latestPH = 485;
 				this._latestBlock = 24;
 				this.SubFn15();
 				break;
 			case 25:
-				this._latestPH = 721;
+				this._latestPH = 485;
 				this._latestBlock = 25;
-				this._latestPH = 724;
+				this._latestPH = 488;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 26:
-				this._latestPH = 724;
+				this._latestPH = 488;
 				this._latestBlock = 26;
-				this._latestPH = 726;
+				this._latestPH = 490;
 				this._res = { r0 : this._t32, r1 : 3, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 27:
-				this._latestPH = 726;
+				this._latestPH = 490;
 				this._latestBlock = 27;
 				this.SubFn16();
 				break;
 			case 28:
-				this._latestPH = 726;
+				this._latestPH = 490;
 				this._latestBlock = 28;
-				this._latestPH = 731;
+				this._latestPH = 495;
 				this._res = { r0 : 65533, r1 : 1, r2 : true};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 29:
-				this._latestPH = 731;
+				this._latestPH = 495;
 				this._latestBlock = 29;
 				this.SubFn17();
 				break;
 			case 30:
-				this._latestPH = 731;
+				this._latestPH = 495;
 				this._latestBlock = 30;
-				this._latestPH = 735;
+				this._latestPH = 499;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 31:
-				this._latestPH = 735;
+				this._latestPH = 499;
 				this._latestBlock = 31;
 				this.SubFn18();
 				break;
 			case 32:
-				this._latestPH = 735;
+				this._latestPH = 499;
 				this._latestBlock = 32;
 				this.SubFn19();
 				break;
 			case 33:
-				this._latestPH = 735;
+				this._latestPH = 499;
 				this._latestBlock = 33;
 				this.SubFn20();
 				break;
 			case 34:
-				this._latestPH = 735;
+				this._latestPH = 499;
 				this._latestBlock = 34;
-				this._latestPH = 748;
+				this._latestPH = 512;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 35:
-				this._latestPH = 748;
+				this._latestPH = 512;
 				this._latestBlock = 35;
-				this._latestPH = 742;
+				this._latestPH = 506;
 				this._res = { r0 : 65533, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 36:
-				this._latestPH = 742;
+				this._latestPH = 506;
 				this._latestBlock = 36;
-				this._latestPH = 744;
+				this._latestPH = 508;
 				this._res = { r0 : this._t54, r1 : 4, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 37:
-				this._latestPH = 744;
+				this._latestPH = 508;
 				this._latestBlock = 37;
 				this.SubFn21();
 				break;
@@ -10846,7 +10644,7 @@ tardis.Go_utf8_Valid = function(gr,_bds,p_p) {
 	this._t2 = false;
 	this._t1 = 0;
 	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,945,"Go_utf8_Valid");
+	tardis.StackFrameBasis.call(this,gr,709,"Go_utf8_Valid");
 	this._bds = _bds;
 	this.p_p = p_p;
 	tardis.Scheduler.push(gr,this);
@@ -10881,12 +10679,12 @@ tardis.Go_utf8_Valid.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,SubFn5: function() {
 		var _t11;
 		this._t10 = this._t8.r1;
-		this._latestPH = 952;
+		this._latestPH = 716;
 		_t11 = this._t10 == 1;
 		this._Next = _t11?6:7;
 	}
 	,SubFn4: function() {
-		this._latestPH = 951;
+		this._latestPH = 715;
 		this._t7 = this.p_p.subSlice(this._t3,-1);
 	}
 	,SubFn3: function() {
@@ -10896,7 +10694,7 @@ tardis.Go_utf8_Valid.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,SubFn2: function() {
 		var _t4;
 		var _t5;
-		this._latestPH = 947;
+		this._latestPH = 711;
 		_t4 = (function($this) {
 			var $r;
 			var _v = $this.p_p;
@@ -10910,7 +10708,7 @@ tardis.Go_utf8_Valid.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		var _t0;
 		var _t1;
 		var _t2;
-		this._latestPH = 948;
+		this._latestPH = 712;
 		if(this._t3 < 0 || this._t3 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t0 = this.p_p.addr(this._t3);
 		_t1 = _t0.ref() | 0;
@@ -10925,66 +10723,66 @@ tardis.Go_utf8_Valid.prototype = $extend(tardis.StackFrameBasis.prototype,{
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 945;
+				this._latestPH = 709;
 				this._latestBlock = 0;
 				this._Next = 3;
 				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 945;
+				this._latestPH = 709;
 				this._latestBlock = 1;
 				this.SubFn1();
 				this._Phi = 1;
 				break;
 			case 2:
-				this._latestPH = 945;
+				this._latestPH = 709;
 				this._latestBlock = 2;
-				this._latestPH = 961;
+				this._latestPH = 725;
 				this._res = true;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 3:
-				this._latestPH = 961;
+				this._latestPH = 725;
 				this._latestBlock = 3;
-				this._latestPH = 946;
+				this._latestPH = 710;
 				this._t3 = this._Phi == 0?0:this._Phi == 4?this._t6:this._Phi == 7?this._t12:0;
 				this.SubFn2();
 				this._Phi = 3;
 				break;
 			case 4:
-				this._latestPH = 946;
+				this._latestPH = 710;
 				this._latestBlock = 4;
 				this._t6 = this._t3 + 1;
 				this._Next = 3;
 				this._Phi = 4;
 				break;
 			case 5:
-				this._latestPH = 946;
+				this._latestPH = 710;
 				this._latestBlock = 5;
-				this._latestPH = 951;
+				this._latestPH = 715;
 				this._t7 = this.p_p.subSlice(this._t3,-1);
-				this._latestPH = 951;
+				this._latestPH = 715;
 				this._SF1 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t7);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 951;
+				this._latestPH = 715;
 				this._latestBlock = -1;
 				this._t8 = this._SF1.res();
 				this.SubFn5();
 				this._Phi = 5;
 				break;
 			case 6:
-				this._latestPH = 951;
+				this._latestPH = 715;
 				this._latestBlock = 6;
-				this._latestPH = 956;
+				this._latestPH = 720;
 				this._res = false;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 7:
-				this._latestPH = 956;
+				this._latestPH = 720;
 				this._latestBlock = 7;
 				this._t12 = this._t3 + this._t10;
 				this._Next = 3;
@@ -11000,2895 +10798,11 @@ tardis.Go_utf8_Valid.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,__class__: tardis.Go_utf8_Valid
 });
-tardis.Go_hxutil_NumGoroutine = function(gr,_bds) {
-	this._Next = 0;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,1033,"Go_hxutil_NumGoroutine");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_NumGoroutine"] = tardis.Go_hxutil_NumGoroutine;
-$hxExpose(tardis.Go_hxutil_NumGoroutine, "Go_hxutil_NumGoroutine");
-tardis.Go_hxutil_NumGoroutine.__name__ = ["tardis","Go_hxutil_NumGoroutine"];
-tardis.Go_hxutil_NumGoroutine.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_NumGoroutine.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_NumGoroutine(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_NumGoroutine.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_NumGoroutine(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_NumGoroutine.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_NumGoroutine(gr,_bds);
-}
-tardis.Go_hxutil_NumGoroutine.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_NumGoroutine.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t1 = js.Boot.__cast(this._t0 , Int);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1033;
-				this._latestBlock = 0;
-				this._t0 = tardis.Scheduler.grStacks.length;
-				this._t1 = js.Boot.__cast(this._t0 , Int);
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_NumGoroutine
-});
-tardis.Go_haxegoruntime_Platform = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,196,"Go_haxegoruntime_Platform");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_Platform"] = tardis.Go_haxegoruntime_Platform;
-$hxExpose(tardis.Go_haxegoruntime_Platform, "Go_haxegoruntime_Platform");
-tardis.Go_haxegoruntime_Platform.__name__ = ["tardis","Go_haxegoruntime_Platform"];
-tardis.Go_haxegoruntime_Platform.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_Platform.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_Platform(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Platform.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_haxegoruntime_Platform(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Platform.call = function(gr,_bds) {
-	return new tardis.Go_haxegoruntime_Platform(gr,_bds);
-}
-tardis.Go_haxegoruntime_Platform.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_Platform.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 196;
-				this._latestBlock = 0;
-				this._res = "go";
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_Platform
-});
-tardis._Go.Go_utf8_init = function(gr,_bds) {
-	this._Next = 0;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,196,"Go_utf8_init");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_utf8_init"] = tardis._Go.Go_utf8_init;
-tardis._Go.Go_utf8_init.__name__ = ["tardis","_Go","Go_utf8_init"];
-tardis._Go.Go_utf8_init.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_utf8_init.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_utf8_init(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis._Go.Go_utf8_init.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_utf8_init(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis._Go.Go_utf8_init.call = function(gr,_bds) {
-	return new tardis._Go.Go_utf8_init(gr,_bds);
-}
-tardis._Go.Go_utf8_init.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_utf8_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn1: function() {
-		tardis.Go.utf8_init_36_guard.store(true);
-		this._Next = 2;
-	}
-	,SubFn0: function() {
-		var _t0;
-		_t0 = tardis.Go.utf8_init_36_guard.ref();
-		this._Next = _t0?2:1;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 196;
-				this._latestBlock = 0;
-				this.SubFn0();
-				break;
-			case 1:
-				this._latestPH = 196;
-				this._latestBlock = 1;
-				tardis.Go.utf8_init_36_guard.store(true);
-				this._Next = 2;
-				break;
-			case 2:
-				this._latestPH = 196;
-				this._latestBlock = 2;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis._Go.Go_utf8_init
-});
-tardis.Go_utf8_RuneCountInString = function(gr,_bds,p_s) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t4 = 0;
-	this._t3 = false;
-	this._t2 = null;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,932,"Go_utf8_RuneCountInString");
-	this._bds = _bds;
-	this.p_s = p_s;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_RuneCountInString"] = tardis.Go_utf8_RuneCountInString;
-$hxExpose(tardis.Go_utf8_RuneCountInString, "Go_utf8_RuneCountInString");
-tardis.Go_utf8_RuneCountInString.__name__ = ["tardis","Go_utf8_RuneCountInString"];
-tardis.Go_utf8_RuneCountInString.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_RuneCountInString.callFromHaxe = function(p_s) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_RuneCountInString(0,[],p_s).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_RuneCountInString.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_utf8_RuneCountInString(_gr,[],p_s).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_RuneCountInString.call = function(gr,_bds,p_s) {
-	return new tardis.Go_utf8_RuneCountInString(gr,_bds,p_s);
-}
-tardis.Go_utf8_RuneCountInString.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_RuneCountInString.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn2: function() {
-		this._t4 = this._t1 + 1;
-		this._Next = 1;
-	}
-	,SubFn1: function() {
-		var _t2;
-		var _t3;
-		_t2 = (function($this) {
-			var $r;
-			var _thisK = $this._t0.k;
-			$r = $this._t0.k >= $this._t0.v.len()?{ r0 : false, r1 : 0, r2 : 0}:(function($this) {
-				var $r;
-				var _dr = tardis.Go_utf8_DecodeRune.callFromRT($this._goroutine,$this._t0.v.subSlice(_thisK,-1));
-				$this._t0.k += _dr.r1;
-				$r = { r0 : true, r1 : js.Boot.__cast(_thisK , Int), r2 : js.Boot.__cast(_dr.r0 , Int)};
-				return $r;
-			}($this));
-			return $r;
-		}(this));
-		_t3 = _t2.r0;
-		this._Next = _t3?2:3;
-	}
-	,SubFn0: function() {
-		this._latestPH = 933;
-		this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
-		this._Next = 1;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 932;
-				this._latestBlock = 0;
-				this._latestPH = 933;
-				this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
-				this._Next = 1;
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 932;
-				this._latestBlock = 1;
-				this._t1 = this._Phi == 0?0:this._Phi == 2?this._t4:0;
-				this.SubFn1();
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 932;
-				this._latestBlock = 2;
-				this._t4 = this._t1 + 1;
-				this._Next = 1;
-				this._Phi = 2;
-				break;
-			case 3:
-				this._latestPH = 932;
-				this._latestBlock = 3;
-				this._latestPH = 936;
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_RuneCountInString
-});
-tardis.Go_hxutil_StringsUTF16 = function(gr,_bds) {
-	this._Next = 0;
-	this._t1 = false;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,1023,"Go_hxutil_StringsUTF16");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_StringsUTF16"] = tardis.Go_hxutil_StringsUTF16;
-$hxExpose(tardis.Go_hxutil_StringsUTF16, "Go_hxutil_StringsUTF16");
-tardis.Go_hxutil_StringsUTF16.__name__ = ["tardis","Go_hxutil_StringsUTF16"];
-tardis.Go_hxutil_StringsUTF16.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_StringsUTF16.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_StringsUTF16(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_StringsUTF16.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_StringsUTF16(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_StringsUTF16.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_StringsUTF16(gr,_bds);
-}
-tardis.Go_hxutil_StringsUTF16.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_StringsUTF16.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t1 = tardis.Force.uintCompare(this._t0,1) == 0;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1023;
-				this._latestBlock = 0;
-				this._t0 = "字".length;
-				this._t1 = tardis.Force.uintCompare(this._t0,1) == 0;
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_StringsUTF16
-});
-tardis.Go_haxegoruntime_UTF8toRunes = function(gr,_bds,p_s) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t25 = false;
-	this._t24 = 0;
-	this._t23 = 0;
-	this._t22 = 0;
-	this._t21 = 0;
-	this._t20 = 0;
-	this._t19 = null;
-	this._t18 = 0;
-	this._t17 = 0;
-	this._t16 = null;
-	this._t15 = 0;
-	this._t14 = 0;
-	this._t13 = null;
-	this._t12 = 0;
-	this._t11 = null;
-	this._t10 = false;
-	this._t9 = 0;
-	this._t8 = false;
-	this._t7 = 0;
-	this._t6 = 0;
-	this._t5 = 0;
-	this._t4 = null;
-	this._t3 = 0;
-	this._t2 = 0;
-	this._t1 = null;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,86,"Go_haxegoruntime_UTF8toRunes");
-	this._bds = _bds;
-	this.p_s = p_s;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_UTF8toRunes"] = tardis.Go_haxegoruntime_UTF8toRunes;
-$hxExpose(tardis.Go_haxegoruntime_UTF8toRunes, "Go_haxegoruntime_UTF8toRunes");
-tardis.Go_haxegoruntime_UTF8toRunes.__name__ = ["tardis","Go_haxegoruntime_UTF8toRunes"];
-tardis.Go_haxegoruntime_UTF8toRunes.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_UTF8toRunes.callFromHaxe = function(p_s) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_UTF8toRunes(0,[],p_s).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_UTF8toRunes.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_haxegoruntime_UTF8toRunes(_gr,[],p_s).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_UTF8toRunes.call = function(gr,_bds,p_s) {
-	return new tardis.Go_haxegoruntime_UTF8toRunes(gr,_bds,p_s);
-}
-tardis.Go_haxegoruntime_UTF8toRunes.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_UTF8toRunes.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn6: function() {
-		var _t23;
-		var _t24;
-		var _t25;
-		this._latestPH = 91;
-		_t23 = (function($this) {
-			var $r;
-			var _v = $this.p_s;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t24 = _t23 - this._t5;
-		_t25 = this._t22 < _t24;
-		this._Next = _t25?5:6;
-	}
-	,SubFn5: function() {
-		var _t19;
-		this._t17 = this._t16.r0;
-		this._t18 = this._t16.r1;
-		this._latestPH = 95;
-		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
-		_t19 = this._t1.addr(this._t6);
-		_t19.store(this._t17);
-		this._t20 = this._t5 + this._t18;
-		this._t21 = this._t6 + 1;
-		this._Next = 3;
-	}
-	,SubFn4: function() {
-		var _t11;
-		var _t12;
-		var _t13;
-		var _t14;
-		this._latestPH = 92;
-		if(this._t22 < 0 || this._t22 >= this._t4.len()) tardis.Scheduler.ioor();
-		_t11 = this._t4.addr(this._t22);
-		_t12 = this._t5 + this._t22;
-		if(_t12 < 0 || _t12 >= this.p_s.len()) tardis.Scheduler.ioor();
-		_t13 = this.p_s.addr(_t12);
-		_t14 = _t13.ref() | 0;
-		_t11.store(_t14);
-		this._t15 = this._t22 + 1;
-		this._Next = 7;
-	}
-	,SubFn3: function() {
-		var _t9;
-		var _t10;
-		_t9 = (function($this) {
-			var $r;
-			var _v = $this._t1;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t10 = this._t6 < _t9;
-		this._Next = _t10?1:2;
-	}
-	,SubFn2: function() {
-		var _t7;
-		var _t8;
-		this._latestPH = 89;
-		_t7 = (function($this) {
-			var $r;
-			var _v = $this.p_s;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t8 = this._t5 < _t7;
-		this._Next = _t8?4:2;
-	}
-	,SubFn1: function() {
-		var _t2;
-		var _t3;
-		this._latestPH = 90;
-		_t2 = (function($this) {
-			var $r;
-			var _v = $this.p_s;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t3 = _t2 - this._t5;
-		this._t4 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < _t3) {
-					var _i = _g++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,_t3);
-		this._Next = 7;
-	}
-	,SubFn0: function() {
-		this._latestPH = 87;
-		this._t1 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g1 = 0, _g = $this._t0;
-				while(_g1 < _g) {
-					var _i = _g1++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,this._t0);
-		this._Next = 3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 86;
-				this._latestBlock = 0;
-				this._latestPH = 87;
-				this._SF1 = new tardis.Go_utf8_RuneCount(this._goroutine,[],this.p_s);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 87;
-				this._latestBlock = -1;
-				this._t0 = this._SF1.res();
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 87;
-				this._latestBlock = 1;
-				this.SubFn1();
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 87;
-				this._latestBlock = 2;
-				this._latestPH = 98;
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 98;
-				this._latestBlock = 3;
-				this._latestPH = 88;
-				this._t5 = this._Phi == 0?0:this._Phi == 6?this._t20:0;
-				this._latestPH = 89;
-				this._t6 = this._Phi == 0?0:this._Phi == 6?this._t21:0;
-				this.SubFn2();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 89;
-				this._latestBlock = 4;
-				this.SubFn3();
-				this._Phi = 4;
-				break;
-			case 5:
-				this._latestPH = 89;
-				this._latestBlock = 5;
-				this.SubFn4();
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 89;
-				this._latestBlock = 6;
-				this._latestPH = 94;
-				this._SF2 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t4);
-				this._Next = -2;
-				return this;
-			case -2:
-				this._latestPH = 94;
-				this._latestBlock = -2;
-				this._t16 = this._SF2.res();
-				this.SubFn5();
-				this._Phi = 6;
-				break;
-			case 7:
-				this._latestPH = 94;
-				this._latestBlock = 7;
-				this._latestPH = 91;
-				this._t22 = this._Phi == 1?0:this._Phi == 5?this._t15:0;
-				this.SubFn6();
-				this._Phi = 7;
-				break;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_UTF8toRunes
-});
-tardis.Go_utf16_EncodeRune = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._t8 = false;
-	this._t7 = false;
-	this._t6 = 0;
-	this._t5 = 0;
-	this._t4 = 0;
-	this._t3 = 0;
-	this._t2 = 0;
-	this._t1 = 0;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,489,"Go_utf16_EncodeRune");
-	this._bds = _bds;
-	this.p_r = p_r;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf16_EncodeRune"] = tardis.Go_utf16_EncodeRune;
-$hxExpose(tardis.Go_utf16_EncodeRune, "Go_utf16_EncodeRune");
-tardis.Go_utf16_EncodeRune.__name__ = ["tardis","Go_utf16_EncodeRune"];
-tardis.Go_utf16_EncodeRune.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf16_EncodeRune.callFromHaxe = function(p_r) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf16_EncodeRune(0,[],p_r).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf16_EncodeRune.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_utf16_EncodeRune(_gr,[],p_r).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf16_EncodeRune.call = function(gr,_bds,p_r) {
-	return new tardis.Go_utf16_EncodeRune(gr,_bds,p_r);
-}
-tardis.Go_utf16_EncodeRune.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf16_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn3: function() {
-		var _t8;
-		this._latestPH = 490;
-		_t8 = this.p_r > 1114111;
-		this._Next = _t8?1:3;
-	}
-	,SubFn2: function() {
-		this._Next = this._t7?1:2;
-	}
-	,SubFn1: function() {
-		var _t2;
-		var _t3;
-		var _t5;
-		this._t1 = tardis.Force.toInt32(this.p_r - 65536);
-		this._latestPH = 494;
-		_t2 = this._t1 >> tardis.Int64.getLow(new tardis.Int64(0,10));
-		_t3 = tardis.Force.toInt32(_t2 & 1023);
-		this._t4 = tardis.Force.toInt32(55296 + _t3);
-		_t5 = tardis.Force.toInt32(this._t1 & 1023);
-		this._t6 = tardis.Force.toInt32(56320 + _t5);
-	}
-	,SubFn0: function() {
-		var _t0;
-		_t0 = this.p_r < 65536;
-		this._Next = _t0?1:4;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 489;
-				this._latestBlock = 0;
-				this.SubFn0();
-				break;
-			case 1:
-				this._latestPH = 489;
-				this._latestBlock = 1;
-				this._latestPH = 491;
-				this._res = { r0 : 65533, r1 : 65533};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 2:
-				this._latestPH = 491;
-				this._latestBlock = 2;
-				this.SubFn1();
-				this._latestPH = 494;
-				this._res = { r0 : this._t4, r1 : this._t6};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 494;
-				this._latestBlock = 3;
-				this._latestPH = 490;
-				this._SF1 = new tardis.Go_utf16_IsSurrogate(this._goroutine,[],this.p_r);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 490;
-				this._latestBlock = -1;
-				this._t7 = this._SF1.res();
-				this._Next = this._t7?1:2;
-				break;
-			case 4:
-				this._latestPH = 490;
-				this._latestBlock = 4;
-				this.SubFn3();
-				break;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf16_EncodeRune
-});
-tardis.Go_utf8_RuneLen = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t7 = false;
-	this._t6 = false;
-	this._t5 = false;
-	this._t4 = false;
-	this._t3 = false;
-	this._t2 = false;
-	this._t1 = false;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,860,"Go_utf8_RuneLen");
-	this._bds = _bds;
-	this.p_r = p_r;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_RuneLen"] = tardis.Go_utf8_RuneLen;
-$hxExpose(tardis.Go_utf8_RuneLen, "Go_utf8_RuneLen");
-tardis.Go_utf8_RuneLen.__name__ = ["tardis","Go_utf8_RuneLen"];
-tardis.Go_utf8_RuneLen.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_RuneLen.callFromHaxe = function(p_r) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_RuneLen(0,[],p_r).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_RuneLen.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_utf8_RuneLen(_gr,[],p_r).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_RuneLen.call = function(gr,_bds,p_r) {
-	return new tardis.Go_utf8_RuneLen(gr,_bds,p_r);
-}
-tardis.Go_utf8_RuneLen.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_RuneLen.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn7: function() {
-		var _t7;
-		this._latestPH = 872;
-		_t7 = this.p_r <= 1114111;
-		this._Next = _t7?12:14;
-	}
-	,SubFn6: function() {
-		this._Next = this._t6?6:9;
-	}
-	,SubFn5: function() {
-		this._latestPH = 868;
-		this._t5 = this.p_r <= 57343;
-		this._Next = 11;
-	}
-	,SubFn4: function() {
-		var _t4;
-		this._latestPH = 870;
-		_t4 = this.p_r <= 65535;
-		this._Next = _t4?8:13;
-	}
-	,SubFn3: function() {
-		var _t3;
-		this._latestPH = 868;
-		_t3 = 55296 <= this.p_r;
-		this._Next = _t3?10:11;
-	}
-	,SubFn2: function() {
-		var _t2;
-		this._latestPH = 866;
-		_t2 = this.p_r <= 2047;
-		this._Next = _t2?4:7;
-	}
-	,SubFn1: function() {
-		var _t1;
-		this._latestPH = 864;
-		_t1 = this.p_r <= 127;
-		this._Next = _t1?2:5;
-	}
-	,SubFn0: function() {
-		var _t0;
-		this._latestPH = 862;
-		_t0 = this.p_r < 0;
-		this._Next = _t0?1:3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 860;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 860;
-				this._latestBlock = 1;
-				this._latestPH = 863;
-				this._res = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 2:
-				this._latestPH = 863;
-				this._latestBlock = 2;
-				this._latestPH = 865;
-				this._res = 1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 865;
-				this._latestBlock = 3;
-				this.SubFn1();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 865;
-				this._latestBlock = 4;
-				this._latestPH = 867;
-				this._res = 2;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 5:
-				this._latestPH = 867;
-				this._latestBlock = 5;
-				this.SubFn2();
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 867;
-				this._latestBlock = 6;
-				this._latestPH = 869;
-				this._res = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 7:
-				this._latestPH = 869;
-				this._latestBlock = 7;
-				this.SubFn3();
-				this._Phi = 7;
-				break;
-			case 8:
-				this._latestPH = 869;
-				this._latestBlock = 8;
-				this._latestPH = 871;
-				this._res = 3;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 9:
-				this._latestPH = 871;
-				this._latestBlock = 9;
-				this.SubFn4();
-				this._Phi = 9;
-				break;
-			case 10:
-				this._latestPH = 871;
-				this._latestBlock = 10;
-				this._latestPH = 868;
-				this._t5 = this.p_r <= 57343;
-				this._Next = 11;
-				this._Phi = 10;
-				break;
-			case 11:
-				this._latestPH = 871;
-				this._latestBlock = 11;
-				this._latestPH = 868;
-				this._t6 = this._Phi == 7?false:this._Phi == 10?this._t5:false;
-				this._Next = this._t6?6:9;
-				this._Phi = 11;
-				break;
-			case 12:
-				this._latestPH = 868;
-				this._latestBlock = 12;
-				this._latestPH = 873;
-				this._res = 4;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 13:
-				this._latestPH = 873;
-				this._latestBlock = 13;
-				this.SubFn7();
-				this._Phi = 13;
-				break;
-			case 14:
-				this._latestPH = 873;
-				this._latestBlock = 14;
-				this._latestPH = 875;
-				this._res = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_RuneLen
-});
-tardis._Go.Go_haxegoruntime_init_36_1 = function(gr,_bds) {
-	this._Next = 0;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,79,"Go_haxegoruntime_init_36_1");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_init_36_1"] = tardis._Go.Go_haxegoruntime_init_36_1;
-tardis._Go.Go_haxegoruntime_init_36_1.__name__ = ["tardis","_Go","Go_haxegoruntime_init_36_1"];
-tardis._Go.Go_haxegoruntime_init_36_1.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_init_36_1.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_init_36_1(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis._Go.Go_haxegoruntime_init_36_1.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_haxegoruntime_init_36_1(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis._Go.Go_haxegoruntime_init_36_1.call = function(gr,_bds) {
-	return new tardis._Go.Go_haxegoruntime_init_36_1(gr,_bds);
-}
-tardis._Go.Go_haxegoruntime_init_36_1.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_init_36_1.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		var _t1;
-		_t1 = js.Boot.__cast(this._t0 , Int);
-		tardis.Go.haxegoruntime_ZiLen.store(_t1);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 79;
-				this._latestBlock = 0;
-				this._latestPH = 80;
-				this._t0 = "字".length;
-				this.SubFn0();
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_init_36_1
-});
-tardis.Go_haxegoruntime_M5 = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,220,"Go_haxegoruntime_M5");
-	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	this.p_a4 = p_a4;
-	this.p_a5 = p_a5;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_M5"] = tardis.Go_haxegoruntime_M5;
-$hxExpose(tardis.Go_haxegoruntime_M5, "Go_haxegoruntime_M5");
-tardis.Go_haxegoruntime_M5.__name__ = ["tardis","Go_haxegoruntime_M5"];
-tardis.Go_haxegoruntime_M5.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M5.callFromHaxe = function(p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M5(0,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M5.callFromRT = function(_gr,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	var _sf = new tardis.Go_haxegoruntime_M5(_gr,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M5.call = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	return new tardis.Go_haxegoruntime_M5(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5);
-}
-tardis.Go_haxegoruntime_M5.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M5.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 220;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_M5
-});
-tardis._Go.Go_haxegoruntime_getgoroot = function(gr,_bds) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,435,"Go_haxegoruntime_getgoroot");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_getgoroot"] = tardis._Go.Go_haxegoruntime_getgoroot;
-tardis._Go.Go_haxegoruntime_getgoroot.__name__ = ["tardis","_Go","Go_haxegoruntime_getgoroot"];
-tardis._Go.Go_haxegoruntime_getgoroot.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_getgoroot.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_getgoroot(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_getgoroot.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_haxegoruntime_getgoroot(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_getgoroot.call = function(gr,_bds) {
-	return new tardis._Go.Go_haxegoruntime_getgoroot(gr,_bds);
-}
-tardis._Go.Go_haxegoruntime_getgoroot.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_getgoroot.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.getgoroot() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 435;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.getgoroot() not yet implemented");
-				this._latestPH = 436;
-				tardis.Scheduler.panic(this._goroutine,this._t0);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 436;
-				this._latestBlock = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_getgoroot
-});
-tardis.Go_haxegoruntime_C0 = function(gr,_bds,p_funcName) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,204,"Go_haxegoruntime_C0");
-	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_C0"] = tardis.Go_haxegoruntime_C0;
-$hxExpose(tardis.Go_haxegoruntime_C0, "Go_haxegoruntime_C0");
-tardis.Go_haxegoruntime_C0.__name__ = ["tardis","Go_haxegoruntime_C0"];
-tardis.Go_haxegoruntime_C0.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C0.callFromHaxe = function(p_funcName) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C0(0,[],p_funcName).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C0.callFromRT = function(_gr,p_funcName) {
-	var _sf = new tardis.Go_haxegoruntime_C0(_gr,[],p_funcName).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C0.call = function(gr,_bds,p_funcName) {
-	return new tardis.Go_haxegoruntime_C0(gr,_bds,p_funcName);
-}
-tardis.Go_haxegoruntime_C0.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C0.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 204;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C0
-});
-tardis.Go_hxutil_CPos = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,1013,"Go_hxutil_CPos");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_CPos"] = tardis.Go_hxutil_CPos;
-$hxExpose(tardis.Go_hxutil_CPos, "Go_hxutil_CPos");
-tardis.Go_hxutil_CPos.__name__ = ["tardis","Go_hxutil_CPos"];
-tardis.Go_hxutil_CPos.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_CPos.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_CPos(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_CPos.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_CPos(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_CPos.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_CPos(gr,_bds);
-}
-tardis.Go_hxutil_CPos.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_CPos.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1013;
-				this._latestBlock = 0;
-				this._res = "<<go code pos>>";
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_CPos
-});
-tardis._Go.Go_utf8_decodeRuneInternal = function(gr,_bds,p_p) {
-	this._Next = 0;
-	this._t60 = false;
-	this._t59 = false;
-	this._t58 = 0;
-	this._t57 = 0;
-	this._t56 = 0;
-	this._t55 = 0;
-	this._t54 = 0;
-	this._t53 = 0;
-	this._t52 = 0;
-	this._t51 = 0;
-	this._t50 = 0;
-	this._t49 = 0;
-	this._t48 = 0;
-	this._t47 = 0;
-	this._t46 = 0;
-	this._t45 = 0;
-	this._t44 = false;
-	this._t43 = false;
-	this._t42 = false;
-	this._t41 = 0;
-	this._t40 = null;
-	this._t39 = false;
-	this._t38 = false;
-	this._t37 = false;
-	this._t36 = false;
-	this._t35 = 0;
-	this._t34 = 0;
-	this._t33 = 0;
-	this._t32 = 0;
-	this._t31 = 0;
-	this._t30 = 0;
-	this._t29 = 0;
-	this._t28 = 0;
-	this._t27 = 0;
-	this._t26 = 0;
-	this._t25 = false;
-	this._t24 = false;
-	this._t23 = false;
-	this._t22 = 0;
-	this._t21 = null;
-	this._t20 = false;
-	this._t19 = false;
-	this._t18 = 0;
-	this._t17 = 0;
-	this._t16 = 0;
-	this._t15 = 0;
-	this._t14 = 0;
-	this._t13 = 0;
-	this._t12 = false;
-	this._t11 = false;
-	this._t10 = false;
-	this._t9 = 0;
-	this._t8 = null;
-	this._t7 = false;
-	this._t6 = false;
-	this._t5 = 0;
-	this._t4 = false;
-	this._t3 = 0;
-	this._t2 = null;
-	this._t1 = false;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,595,"Go_utf8_decodeRuneInternal");
-	this._bds = _bds;
-	this.p_p = p_p;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_utf8_decodeRuneInternal"] = tardis._Go.Go_utf8_decodeRuneInternal;
-tardis._Go.Go_utf8_decodeRuneInternal.__name__ = ["tardis","_Go","Go_utf8_decodeRuneInternal"];
-tardis._Go.Go_utf8_decodeRuneInternal.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_utf8_decodeRuneInternal.callFromHaxe = function(p_p) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_utf8_decodeRuneInternal(0,[],p_p).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis._Go.Go_utf8_decodeRuneInternal.callFromRT = function(_gr,p_p) {
-	var _sf = new tardis._Go.Go_utf8_decodeRuneInternal(_gr,[],p_p).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis._Go.Go_utf8_decodeRuneInternal.call = function(gr,_bds,p_p) {
-	return new tardis._Go.Go_utf8_decodeRuneInternal(gr,_bds,p_p);
-}
-tardis._Go.Go_utf8_decodeRuneInternal.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_utf8_decodeRuneInternal.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn21: function() {
-		var _t60;
-		_t60 = 1114111 < this._t58;
-		this._Next = _t60?35:36;
-	}
-	,SubFn20: function() {
-		var _t45;
-		var _t46;
-		var _t47;
-		var _t48;
-		var _t49;
-		var _t50;
-		var _t51;
-		var _t52;
-		var _t53;
-		var _t54;
-		var _t55;
-		var _t56;
-		var _t57;
-		var _t59;
-		this._latestPH = 662;
-		_t45 = this._t3 & 7 & 255;
-		_t46 = _t45;
-		_t47 = _t46 << tardis.Int64.getLow(new tardis.Int64(0,18));
-		_t48 = this._t9 & 63 & 255;
-		_t49 = _t48;
-		_t50 = _t49 << tardis.Int64.getLow(new tardis.Int64(0,12));
-		_t51 = tardis.Force.toInt32(_t47 | _t50);
-		_t52 = this._t22 & 63 & 255;
-		_t53 = _t52;
-		_t54 = _t53 << tardis.Int64.getLow(new tardis.Int64(0,6));
-		_t55 = tardis.Force.toInt32(_t51 | _t54);
-		_t56 = this._t41 & 63 & 255;
-		_t57 = _t56;
-		this._t58 = tardis.Force.toInt32(_t55 | _t57);
-		this._latestPH = 663;
-		_t59 = this._t58 <= 65535;
-		this._Next = _t59?35:37;
-	}
-	,SubFn19: function() {
-		var _t44;
-		this._latestPH = 656;
-		_t44 = tardis.Force.uintCompare(192,this._t41) <= 0;
-		this._Next = _t44?30:31;
-	}
-	,SubFn18: function() {
-		var _t43;
-		this._latestPH = 661;
-		_t43 = tardis.Force.uintCompare(this._t3,248) < 0;
-		this._Next = _t43?33:34;
-	}
-	,SubFn17: function() {
-		var _t40;
-		var _t42;
-		this._latestPH = 655;
-		if(3 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t40 = this.p_p.addr(3);
-		this._t41 = _t40.ref() | 0;
-		this._latestPH = 656;
-		_t42 = tardis.Force.uintCompare(this._t41,128) < 0;
-		this._Next = _t42?30:32;
-	}
-	,SubFn16: function() {
-		var _t39;
-		_t39 = this._t35 <= 57343;
-		this._Next = _t39?25:26;
-	}
-	,SubFn15: function() {
-		var _t38;
-		this._latestPH = 645;
-		_t38 = 55296 <= this._t35;
-		this._Next = _t38?27:26;
-	}
-	,SubFn14: function() {
-		var _t37;
-		this._latestPH = 652;
-		_t37 = this._t0 < 4;
-		this._Next = _t37?28:29;
-	}
-	,SubFn13: function() {
-		var _t26;
-		var _t27;
-		var _t28;
-		var _t29;
-		var _t30;
-		var _t31;
-		var _t32;
-		var _t33;
-		var _t34;
-		var _t36;
-		this._latestPH = 641;
-		_t26 = this._t3 & 15 & 255;
-		_t27 = _t26;
-		_t28 = _t27 << tardis.Int64.getLow(new tardis.Int64(0,12));
-		_t29 = this._t9 & 63 & 255;
-		_t30 = _t29;
-		_t31 = _t30 << tardis.Int64.getLow(new tardis.Int64(0,6));
-		_t32 = tardis.Force.toInt32(_t28 | _t31);
-		_t33 = this._t22 & 63 & 255;
-		_t34 = _t33;
-		this._t35 = tardis.Force.toInt32(_t32 | _t34);
-		this._latestPH = 642;
-		_t36 = this._t35 <= 2047;
-		this._Next = _t36?23:24;
-	}
-	,SubFn12: function() {
-		var _t25;
-		this._latestPH = 635;
-		_t25 = tardis.Force.uintCompare(192,this._t22) <= 0;
-		this._Next = _t25?18:19;
-	}
-	,SubFn11: function() {
-		var _t24;
-		this._latestPH = 640;
-		_t24 = tardis.Force.uintCompare(this._t3,240) < 0;
-		this._Next = _t24?21:22;
-	}
-	,SubFn10: function() {
-		var _t21;
-		var _t23;
-		this._latestPH = 634;
-		if(2 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t21 = this.p_p.addr(2);
-		this._t22 = _t21.ref() | 0;
-		this._latestPH = 635;
-		_t23 = tardis.Force.uintCompare(this._t22,128) < 0;
-		this._Next = _t23?18:20;
-	}
-	,SubFn9: function() {
-		var _t20;
-		this._latestPH = 631;
-		_t20 = this._t0 < 3;
-		this._Next = _t20?16:17;
-	}
-	,SubFn8: function() {
-		var _t13;
-		var _t14;
-		var _t15;
-		var _t16;
-		var _t17;
-		var _t19;
-		this._latestPH = 623;
-		_t13 = this._t3 & 31 & 255;
-		_t14 = _t13;
-		_t15 = _t14 << tardis.Int64.getLow(new tardis.Int64(0,6));
-		_t16 = this._t9 & 63 & 255;
-		_t17 = _t16;
-		this._t18 = tardis.Force.toInt32(_t15 | _t17);
-		this._latestPH = 624;
-		_t19 = this._t18 <= 127;
-		this._Next = _t19?14:15;
-	}
-	,SubFn7: function() {
-		var _t12;
-		this._latestPH = 617;
-		_t12 = tardis.Force.uintCompare(192,this._t9) <= 0;
-		this._Next = _t12?9:10;
-	}
-	,SubFn6: function() {
-		var _t11;
-		this._latestPH = 622;
-		_t11 = tardis.Force.uintCompare(this._t3,224) < 0;
-		this._Next = _t11?12:13;
-	}
-	,SubFn5: function() {
-		var _t8;
-		var _t10;
-		this._latestPH = 616;
-		if(1 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t8 = this.p_p.addr(1);
-		this._t9 = _t8.ref() | 0;
-		this._latestPH = 617;
-		_t10 = tardis.Force.uintCompare(this._t9,128) < 0;
-		this._Next = _t10?9:11;
-	}
-	,SubFn4: function() {
-		var _t7;
-		this._latestPH = 613;
-		_t7 = this._t0 < 2;
-		this._Next = _t7?7:8;
-	}
-	,SubFn3: function() {
-		var _t6;
-		this._latestPH = 608;
-		_t6 = tardis.Force.uintCompare(this._t3,192) < 0;
-		this._Next = _t6?5:6;
-	}
-	,SubFn2: function() {
-		this._latestPH = 604;
-		this._t5 = this._t3;
-	}
-	,SubFn1: function() {
-		var _t2;
-		var _t4;
-		this._latestPH = 600;
-		if(0 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t2 = this.p_p.addr(0);
-		this._t3 = _t2.ref() | 0;
-		this._latestPH = 603;
-		_t4 = tardis.Force.uintCompare(this._t3,128) < 0;
-		this._Next = _t4?3:4;
-	}
-	,SubFn0: function() {
-		var _t1;
-		this._latestPH = 596;
-		this._t0 = (function($this) {
-			var $r;
-			var _v = $this.p_p;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._latestPH = 597;
-		_t1 = this._t0 < 1;
-		this._Next = _t1?1:2;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 595;
-				this._latestBlock = 0;
-				this.SubFn0();
-				break;
-			case 1:
-				this._latestPH = 595;
-				this._latestBlock = 1;
-				this._latestPH = 598;
-				this._res = { r0 : 65533, r1 : 0, r2 : true};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 2:
-				this._latestPH = 598;
-				this._latestBlock = 2;
-				this.SubFn1();
-				break;
-			case 3:
-				this._latestPH = 598;
-				this._latestBlock = 3;
-				this._latestPH = 604;
-				this._t5 = this._t3;
-				this._latestPH = 604;
-				this._res = { r0 : this._t5, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 4:
-				this._latestPH = 604;
-				this._latestBlock = 4;
-				this.SubFn3();
-				break;
-			case 5:
-				this._latestPH = 604;
-				this._latestBlock = 5;
-				this._latestPH = 609;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 6:
-				this._latestPH = 609;
-				this._latestBlock = 6;
-				this.SubFn4();
-				break;
-			case 7:
-				this._latestPH = 609;
-				this._latestBlock = 7;
-				this._latestPH = 614;
-				this._res = { r0 : 65533, r1 : 1, r2 : true};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 8:
-				this._latestPH = 614;
-				this._latestBlock = 8;
-				this.SubFn5();
-				break;
-			case 9:
-				this._latestPH = 614;
-				this._latestBlock = 9;
-				this._latestPH = 618;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 10:
-				this._latestPH = 618;
-				this._latestBlock = 10;
-				this.SubFn6();
-				break;
-			case 11:
-				this._latestPH = 618;
-				this._latestBlock = 11;
-				this.SubFn7();
-				break;
-			case 12:
-				this._latestPH = 618;
-				this._latestBlock = 12;
-				this.SubFn8();
-				break;
-			case 13:
-				this._latestPH = 618;
-				this._latestBlock = 13;
-				this.SubFn9();
-				break;
-			case 14:
-				this._latestPH = 618;
-				this._latestBlock = 14;
-				this._latestPH = 625;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 15:
-				this._latestPH = 625;
-				this._latestBlock = 15;
-				this._latestPH = 627;
-				this._res = { r0 : this._t18, r1 : 2, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 16:
-				this._latestPH = 627;
-				this._latestBlock = 16;
-				this._latestPH = 632;
-				this._res = { r0 : 65533, r1 : 1, r2 : true};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 17:
-				this._latestPH = 632;
-				this._latestBlock = 17;
-				this.SubFn10();
-				break;
-			case 18:
-				this._latestPH = 632;
-				this._latestBlock = 18;
-				this._latestPH = 636;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 19:
-				this._latestPH = 636;
-				this._latestBlock = 19;
-				this.SubFn11();
-				break;
-			case 20:
-				this._latestPH = 636;
-				this._latestBlock = 20;
-				this.SubFn12();
-				break;
-			case 21:
-				this._latestPH = 636;
-				this._latestBlock = 21;
-				this.SubFn13();
-				break;
-			case 22:
-				this._latestPH = 636;
-				this._latestBlock = 22;
-				this.SubFn14();
-				break;
-			case 23:
-				this._latestPH = 636;
-				this._latestBlock = 23;
-				this._latestPH = 643;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 24:
-				this._latestPH = 643;
-				this._latestBlock = 24;
-				this.SubFn15();
-				break;
-			case 25:
-				this._latestPH = 643;
-				this._latestBlock = 25;
-				this._latestPH = 646;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 26:
-				this._latestPH = 646;
-				this._latestBlock = 26;
-				this._latestPH = 648;
-				this._res = { r0 : this._t35, r1 : 3, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 27:
-				this._latestPH = 648;
-				this._latestBlock = 27;
-				this.SubFn16();
-				break;
-			case 28:
-				this._latestPH = 648;
-				this._latestBlock = 28;
-				this._latestPH = 653;
-				this._res = { r0 : 65533, r1 : 1, r2 : true};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 29:
-				this._latestPH = 653;
-				this._latestBlock = 29;
-				this.SubFn17();
-				break;
-			case 30:
-				this._latestPH = 653;
-				this._latestBlock = 30;
-				this._latestPH = 657;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 31:
-				this._latestPH = 657;
-				this._latestBlock = 31;
-				this.SubFn18();
-				break;
-			case 32:
-				this._latestPH = 657;
-				this._latestBlock = 32;
-				this.SubFn19();
-				break;
-			case 33:
-				this._latestPH = 657;
-				this._latestBlock = 33;
-				this.SubFn20();
-				break;
-			case 34:
-				this._latestPH = 657;
-				this._latestBlock = 34;
-				this._latestPH = 670;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 35:
-				this._latestPH = 670;
-				this._latestBlock = 35;
-				this._latestPH = 664;
-				this._res = { r0 : 65533, r1 : 1, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 36:
-				this._latestPH = 664;
-				this._latestBlock = 36;
-				this._latestPH = 666;
-				this._res = { r0 : this._t58, r1 : 4, r2 : false};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 37:
-				this._latestPH = 666;
-				this._latestBlock = 37;
-				this.SubFn21();
-				break;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis._Go.Go_utf8_decodeRuneInternal
-});
-tardis.Go_utf16_IsSurrogate = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t2 = false;
-	this._t1 = false;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,472,"Go_utf16_IsSurrogate");
-	this._bds = _bds;
-	this.p_r = p_r;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf16_IsSurrogate"] = tardis.Go_utf16_IsSurrogate;
-$hxExpose(tardis.Go_utf16_IsSurrogate, "Go_utf16_IsSurrogate");
-tardis.Go_utf16_IsSurrogate.__name__ = ["tardis","Go_utf16_IsSurrogate"];
-tardis.Go_utf16_IsSurrogate.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf16_IsSurrogate.callFromHaxe = function(p_r) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf16_IsSurrogate(0,[],p_r).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf16_IsSurrogate.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_utf16_IsSurrogate(_gr,[],p_r).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf16_IsSurrogate.call = function(gr,_bds,p_r) {
-	return new tardis.Go_utf16_IsSurrogate(gr,_bds,p_r);
-}
-tardis.Go_utf16_IsSurrogate.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf16_IsSurrogate.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn1: function() {
-		this._t1 = this.p_r < 57344;
-		this._Next = 2;
-	}
-	,SubFn0: function() {
-		var _t0;
-		_t0 = 55296 <= this.p_r;
-		this._Next = _t0?1:2;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 472;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 472;
-				this._latestBlock = 1;
-				this._t1 = this.p_r < 57344;
-				this._Next = 2;
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 472;
-				this._latestBlock = 2;
-				this._latestPH = 473;
-				this._t2 = this._Phi == 0?false:this._Phi == 1?this._t1:false;
-				this._res = this._t2;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf16_IsSurrogate
-});
-tardis.Go_haxegoruntime_M2 = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,217,"Go_haxegoruntime_M2");
-	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_M2"] = tardis.Go_haxegoruntime_M2;
-$hxExpose(tardis.Go_haxegoruntime_M2, "Go_haxegoruntime_M2");
-tardis.Go_haxegoruntime_M2.__name__ = ["tardis","Go_haxegoruntime_M2"];
-tardis.Go_haxegoruntime_M2.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M2.callFromHaxe = function(p_rx,p_typ,p_meth,p_a1,p_a2) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M2(0,[],p_rx,p_typ,p_meth,p_a1,p_a2).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M2.callFromRT = function(_gr,p_rx,p_typ,p_meth,p_a1,p_a2) {
-	var _sf = new tardis.Go_haxegoruntime_M2(_gr,[],p_rx,p_typ,p_meth,p_a1,p_a2).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M2.call = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2) {
-	return new tardis.Go_haxegoruntime_M2(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2);
-}
-tardis.Go_haxegoruntime_M2.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M2.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 217;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_M2
-});
-tardis._Go.Go_haxegoruntime_funcname_go = function(gr,_bds,p_arg0) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,419,"Go_haxegoruntime_funcname_go");
-	this._bds = _bds;
-	this.p_arg0 = p_arg0;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_funcname_go"] = tardis._Go.Go_haxegoruntime_funcname_go;
-tardis._Go.Go_haxegoruntime_funcname_go.__name__ = ["tardis","_Go","Go_haxegoruntime_funcname_go"];
-tardis._Go.Go_haxegoruntime_funcname_go.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_funcname_go.callFromHaxe = function(p_arg0) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_funcname_go(0,[],p_arg0).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_funcname_go.callFromRT = function(_gr,p_arg0) {
-	var _sf = new tardis._Go.Go_haxegoruntime_funcname_go(_gr,[],p_arg0).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_funcname_go.call = function(gr,_bds,p_arg0) {
-	return new tardis._Go.Go_haxegoruntime_funcname_go(gr,_bds,p_arg0);
-}
-tardis._Go.Go_haxegoruntime_funcname_go.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_funcname_go.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.funcname_go() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 419;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.funcname_go() not yet implemented");
-				this._latestPH = 420;
-				tardis.Scheduler.panic(this._goroutine,this._t0);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 420;
-				this._latestBlock = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_funcname_go
-});
-tardis.Go_utf8_RuneStart = function(gr,_bds,p_b) {
-	this._Next = 0;
-	this._t1 = false;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,942,"Go_utf8_RuneStart");
-	this._bds = _bds;
-	this.p_b = p_b;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_RuneStart"] = tardis.Go_utf8_RuneStart;
-$hxExpose(tardis.Go_utf8_RuneStart, "Go_utf8_RuneStart");
-tardis.Go_utf8_RuneStart.__name__ = ["tardis","Go_utf8_RuneStart"];
-tardis.Go_utf8_RuneStart.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_RuneStart.callFromHaxe = function(p_b) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_RuneStart(0,[],p_b).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_RuneStart.callFromRT = function(_gr,p_b) {
-	var _sf = new tardis.Go_utf8_RuneStart(_gr,[],p_b).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_RuneStart.call = function(gr,_bds,p_b) {
-	return new tardis.Go_utf8_RuneStart(gr,_bds,p_b);
-}
-tardis.Go_utf8_RuneStart.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_RuneStart.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		var _t0;
-		_t0 = this.p_b & 192 & 255;
-		this._t1 = tardis.Force.uintCompare(_t0,128) != 0;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 942;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_RuneStart
-});
-tardis.Go_hxutil_Gosched = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,1030,"Go_hxutil_Gosched");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_Gosched"] = tardis.Go_hxutil_Gosched;
-$hxExpose(tardis.Go_hxutil_Gosched, "Go_hxutil_Gosched");
-tardis.Go_hxutil_Gosched.__name__ = ["tardis","Go_hxutil_Gosched"];
-tardis.Go_hxutil_Gosched.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_Gosched.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_Gosched(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis.Go_hxutil_Gosched.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_Gosched(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis.Go_hxutil_Gosched.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_Gosched(gr,_bds);
-}
-tardis.Go_hxutil_Gosched.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_Gosched.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1030;
-				this._latestBlock = 0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis.Go_hxutil_Gosched
-});
-tardis.Go_utf16_Decode = function(gr,_bds,p_s) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t42 = false;
-	this._t41 = false;
-	this._t40 = 0;
-	this._t39 = 0;
-	this._t38 = null;
-	this._t37 = false;
-	this._t36 = false;
-	this._t35 = 0;
-	this._t34 = 0;
-	this._t33 = false;
-	this._t32 = 0;
-	this._t31 = null;
-	this._t30 = 0;
-	this._t29 = false;
-	this._t28 = false;
-	this._t27 = 0;
-	this._t26 = null;
-	this._t25 = 0;
-	this._t24 = false;
-	this._t23 = 0;
-	this._t22 = null;
-	this._t21 = 0;
-	this._t20 = 0;
-	this._t19 = 0;
-	this._t18 = 0;
-	this._t17 = 0;
-	this._t16 = null;
-	this._t15 = 0;
-	this._t14 = 0;
-	this._t13 = null;
-	this._t12 = 0;
-	this._t11 = 0;
-	this._t10 = 0;
-	this._t9 = false;
-	this._t8 = 0;
-	this._t7 = 0;
-	this._t6 = 0;
-	this._t5 = null;
-	this._t4 = false;
-	this._t3 = 0;
-	this._t2 = null;
-	this._t1 = null;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,528,"Go_utf16_Decode");
-	this._bds = _bds;
-	this.p_s = p_s;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf16_Decode"] = tardis.Go_utf16_Decode;
-$hxExpose(tardis.Go_utf16_Decode, "Go_utf16_Decode");
-tardis.Go_utf16_Decode.__name__ = ["tardis","Go_utf16_Decode"];
-tardis.Go_utf16_Decode.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf16_Decode.callFromHaxe = function(p_s) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf16_Decode(0,[],p_s).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf16_Decode.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_utf16_Decode(_gr,[],p_s).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf16_Decode.call = function(gr,_bds,p_s) {
-	return new tardis.Go_utf16_Decode(gr,_bds,p_s);
-}
-tardis.Go_utf16_Decode.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf16_Decode.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn16: function() {
-		this._Next = this._t42?6:13;
-	}
-	,SubFn15: function() {
-		this._latestPH = 539;
-		this._t41 = tardis.Force.uintCompare(this._t3,57344) < 0;
-		this._Next = 15;
-	}
-	,SubFn14: function() {
-		var _t38;
-		var _t39;
-		this._latestPH = 545;
-		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
-		_t38 = this._t1.addr(this._t6);
-		_t39 = this._t3;
-		_t38.store(_t39);
-		this._t40 = this._t6 + 1;
-		this._Next = 4;
-	}
-	,SubFn13: function() {
-		var _t37;
-		_t37 = tardis.Force.uintCompare(this._t3,56320) < 0;
-		this._Next = _t37?11:9;
-	}
-	,SubFn12: function() {
-		var _t34;
-		var _t35;
-		var _t36;
-		this._latestPH = 533;
-		_t34 = this._t7 + 1;
-		_t35 = (function($this) {
-			var $r;
-			var _v = $this.p_s;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t36 = _t34 < _t35;
-		this._Next = _t36?10:9;
-	}
-	,SubFn11: function() {
-		var _t30;
-		var _t31;
-		var _t32;
-		var _t33;
-		_t30 = this._t7 + 1;
-		if(_t30 < 0 || _t30 >= this.p_s.len()) tardis.Scheduler.ioor();
-		_t31 = this.p_s.addr(_t30);
-		_t32 = _t31.ref() | 0;
-		_t33 = tardis.Force.uintCompare(56320,_t32) <= 0;
-		this._Next = _t33?8:9;
-	}
-	,SubFn10: function() {
-		this._Next = this._t29?5:7;
-	}
-	,SubFn9: function() {
-		var _t25;
-		var _t26;
-		var _t27;
-		this._latestPH = 534;
-		_t25 = this._t7 + 1;
-		if(_t25 < 0 || _t25 >= this.p_s.len()) tardis.Scheduler.ioor();
-		_t26 = this.p_s.addr(_t25);
-		_t27 = _t26.ref() | 0;
-		this._t28 = tardis.Force.uintCompare(_t27,57344) < 0;
-		this._Next = 9;
-	}
-	,SubFn8: function() {
-		var _t24;
-		this._latestPH = 539;
-		_t24 = tardis.Force.uintCompare(55296,this._t3) <= 0;
-		this._Next = _t24?14:15;
-	}
-	,SubFn7: function() {
-		var _t22;
-		this._latestPH = 541;
-		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
-		_t22 = this._t1.addr(this._t6);
-		_t22.store(65533);
-		this._t23 = this._t6 + 1;
-		this._Next = 4;
-	}
-	,SubFn6: function() {
-		this._t13.store(this._t19);
-		this._t20 = this._t7 + 1;
-		this._t21 = this._t6 + 1;
-		this._Next = 4;
-	}
-	,SubFn5: function() {
-		var _t15;
-		var _t16;
-		var _t17;
-		this._latestPH = 536;
-		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
-		this._t13 = this._t1.addr(this._t6);
-		this._t14 = this._t3;
-		_t15 = this._t7 + 1;
-		if(_t15 < 0 || _t15 >= this.p_s.len()) tardis.Scheduler.ioor();
-		_t16 = this.p_s.addr(_t15);
-		_t17 = _t16.ref() | 0;
-		this._t18 = _t17;
-	}
-	,SubFn4: function() {
-		this._t12 = this._t11 + 1;
-		this._Next = 3;
-	}
-	,SubFn3: function() {
-		var _t8;
-		var _t9;
-		this._latestPH = 531;
-		_t8 = (function($this) {
-			var $r;
-			var _v = $this.p_s;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t9 = this._t7 < _t8;
-		this._Next = _t9?1:2;
-	}
-	,SubFn2: function() {
-		this._latestPH = 549;
-		this._t5 = this._t1.subSlice(0,this._t6);
-	}
-	,SubFn1: function() {
-		var _t2;
-		var _t4;
-		this._latestPH = 532;
-		if(this._t7 < 0 || this._t7 >= this.p_s.len()) tardis.Scheduler.ioor();
-		_t2 = this.p_s.addr(this._t7);
-		this._t3 = _t2.ref() | 0;
-		this._latestPH = 533;
-		_t4 = tardis.Force.uintCompare(55296,this._t3) <= 0;
-		this._Next = _t4?12:9;
-	}
-	,SubFn0: function() {
-		var _t0;
-		this._latestPH = 529;
-		_t0 = (function($this) {
-			var $r;
-			var _v = $this.p_s;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._t1 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < _t0) {
-					var _i = _g++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,_t0);
-		this._Next = 3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 528;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 528;
-				this._latestBlock = 1;
-				this.SubFn1();
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 528;
-				this._latestBlock = 2;
-				this._latestPH = 549;
-				this._t5 = this._t1.subSlice(0,this._t6);
-				this._latestPH = 549;
-				this._res = this._t5;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 549;
-				this._latestBlock = 3;
-				this._latestPH = 530;
-				this._t6 = this._Phi == 0?0:this._Phi == 4?this._t10:0;
-				this._latestPH = 531;
-				this._t7 = this._Phi == 0?0:this._Phi == 4?this._t12:0;
-				this.SubFn3();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 531;
-				this._latestBlock = 4;
-				this._latestPH = 530;
-				this._t10 = this._Phi == 5?this._t21:this._Phi == 6?this._t23:this._Phi == 13?this._t40:0;
-				this._latestPH = 531;
-				this._t11 = this._Phi == 5?this._t20:this._Phi == 6?this._t7:this._Phi == 13?this._t7:0;
-				this._t12 = this._t11 + 1;
-				this._Next = 3;
-				this._Phi = 4;
-				break;
-			case 5:
-				this._latestPH = 531;
-				this._latestBlock = 5;
-				this.SubFn5();
-				this._latestPH = 536;
-				this._SF1 = new tardis.Go_utf16_DecodeRune(this._goroutine,[],this._t14,this._t18);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 536;
-				this._latestBlock = -1;
-				this._t19 = this._SF1.res();
-				this._t13.store(this._t19);
-				this._t20 = this._t7 + 1;
-				this._t21 = this._t6 + 1;
-				this._Next = 4;
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 536;
-				this._latestBlock = 6;
-				this.SubFn7();
-				this._Phi = 6;
-				break;
-			case 7:
-				this._latestPH = 536;
-				this._latestBlock = 7;
-				this.SubFn8();
-				this._Phi = 7;
-				break;
-			case 8:
-				this._latestPH = 536;
-				this._latestBlock = 8;
-				this.SubFn9();
-				this._Phi = 8;
-				break;
-			case 9:
-				this._latestPH = 536;
-				this._latestBlock = 9;
-				this._latestPH = 534;
-				this._t29 = this._Phi == 1?false:this._Phi == 12?false:this._Phi == 11?false:this._Phi == 10?false:this._Phi == 8?this._t28:false;
-				this._Next = this._t29?5:7;
-				this._Phi = 9;
-				break;
-			case 10:
-				this._latestPH = 534;
-				this._latestBlock = 10;
-				this.SubFn11();
-				this._Phi = 10;
-				break;
-			case 11:
-				this._latestPH = 534;
-				this._latestBlock = 11;
-				this.SubFn12();
-				this._Phi = 11;
-				break;
-			case 12:
-				this._latestPH = 534;
-				this._latestBlock = 12;
-				this.SubFn13();
-				this._Phi = 12;
-				break;
-			case 13:
-				this._latestPH = 534;
-				this._latestBlock = 13;
-				this.SubFn14();
-				this._Phi = 13;
-				break;
-			case 14:
-				this._latestPH = 534;
-				this._latestBlock = 14;
-				this._latestPH = 539;
-				this._t41 = tardis.Force.uintCompare(this._t3,57344) < 0;
-				this._Next = 15;
-				this._Phi = 14;
-				break;
-			case 15:
-				this._latestPH = 534;
-				this._latestBlock = 15;
-				this._latestPH = 539;
-				this._t42 = this._Phi == 7?false:this._Phi == 14?this._t41:false;
-				this._Next = this._t42?6:13;
-				this._Phi = 15;
-				break;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf16_Decode
-});
-tardis.Go_utf8_RuneCount = function(gr,_bds,p_p) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t16 = 0;
-	this._t15 = 0;
-	this._t13 = null;
-	this._t12 = null;
-	this._t11 = 0;
-	this._t10 = 0;
-	this._t9 = 0;
-	this._t8 = 0;
-	this._t7 = false;
-	this._t6 = 0;
-	this._t5 = 0;
-	this._t4 = 0;
-	this._t3 = 0;
-	this._t2 = false;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,917,"Go_utf8_RuneCount");
-	this._bds = _bds;
-	this.p_p = p_p;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_RuneCount"] = tardis.Go_utf8_RuneCount;
-$hxExpose(tardis.Go_utf8_RuneCount, "Go_utf8_RuneCount");
-tardis.Go_utf8_RuneCount.__name__ = ["tardis","Go_utf8_RuneCount"];
-tardis.Go_utf8_RuneCount.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_RuneCount.callFromHaxe = function(p_p) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_RuneCount(0,[],p_p).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_RuneCount.callFromRT = function(_gr,p_p) {
-	var _sf = new tardis.Go_utf8_RuneCount(_gr,[],p_p).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_RuneCount.call = function(gr,_bds,p_p) {
-	return new tardis.Go_utf8_RuneCount(gr,_bds,p_p);
-}
-tardis.Go_utf8_RuneCount.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_RuneCount.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn6: function() {
-		this._t15 = this._t13.r1;
-		this._t16 = this._t3 + this._t15;
-		this._Next = 5;
-	}
-	,SubFn5: function() {
-		this._latestPH = 924;
-		this._t12 = this.p_p.subSlice(this._t3,-1);
-	}
-	,SubFn4: function() {
-		this._t11 = this._t4 + 1;
-		this._Next = 3;
-	}
-	,SubFn3: function() {
-		this._t8 = this._t3 + 1;
-		this._Next = 5;
-	}
-	,SubFn2: function() {
-		var _t6;
-		var _t7;
-		this._latestPH = 920;
-		_t6 = (function($this) {
-			var $r;
-			var _v = $this.p_p;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t7 = this._t3 < _t6;
-		this._Next = _t7?1:2;
-	}
-	,SubFn1: function() {
-		var _t0;
-		var _t1;
-		var _t2;
-		this._latestPH = 921;
-		if(this._t3 < 0 || this._t3 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t0 = this.p_p.addr(this._t3);
-		_t1 = _t0.ref() | 0;
-		_t2 = tardis.Force.uintCompare(_t1,128) < 0;
-		this._Next = _t2?4:6;
-	}
-	,SubFn0: function() {
-		this._Next = 3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 917;
-				this._latestBlock = 0;
-				this._Next = 3;
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 917;
-				this._latestBlock = 1;
-				this.SubFn1();
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 917;
-				this._latestBlock = 2;
-				this._latestPH = 928;
-				this._res = this._t4;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 928;
-				this._latestBlock = 3;
-				this._latestPH = 918;
-				this._t3 = this._Phi == 0?0:this._Phi == 5?this._t9:0;
-				this._latestPH = 919;
-				this._t4 = this._Phi == 0?0:this._Phi == 5?this._t11:0;
-				this._latestPH = 924;
-				this._t5 = this._Phi == 0?0:this._Phi == 5?this._t10:0;
-				this.SubFn2();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 924;
-				this._latestBlock = 4;
-				this._t8 = this._t3 + 1;
-				this._Next = 5;
-				this._Phi = 4;
-				break;
-			case 5:
-				this._latestPH = 924;
-				this._latestBlock = 5;
-				this._latestPH = 918;
-				this._t9 = this._Phi == 4?this._t8:this._Phi == 6?this._t16:0;
-				this._latestPH = 924;
-				this._t10 = this._Phi == 4?this._t5:this._Phi == 6?this._t15:0;
-				this._t11 = this._t4 + 1;
-				this._Next = 3;
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 924;
-				this._latestBlock = 6;
-				this._latestPH = 924;
-				this._t12 = this.p_p.subSlice(this._t3,-1);
-				this._SF1 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t12);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 924;
-				this._latestBlock = -1;
-				this._t13 = this._SF1.res();
-				this._t15 = this._t13.r1;
-				this._t16 = this._t3 + this._t15;
-				this._Next = 5;
-				this._Phi = 6;
-				break;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_RuneCount
-});
-tardis._Go.Go_haxegoruntime_init = function(gr,_bds) {
-	this._Next = 0;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,924,"Go_haxegoruntime_init");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_init"] = tardis._Go.Go_haxegoruntime_init;
-tardis._Go.Go_haxegoruntime_init.__name__ = ["tardis","_Go","Go_haxegoruntime_init"];
-tardis._Go.Go_haxegoruntime_init.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_init.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_init(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis._Go.Go_haxegoruntime_init.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_haxegoruntime_init(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis._Go.Go_haxegoruntime_init.call = function(gr,_bds) {
-	return new tardis._Go.Go_haxegoruntime_init(gr,_bds);
-}
-tardis._Go.Go_haxegoruntime_init.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn2: function() {
-		this._Next = 2;
-	}
-	,SubFn1: function() {
-		tardis.Go.haxegoruntime_init_36_guard.store(true);
-	}
-	,SubFn0: function() {
-		var _t0;
-		_t0 = tardis.Go.haxegoruntime_init_36_guard.ref();
-		this._Next = _t0?2:1;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 924;
-				this._latestBlock = 0;
-				this.SubFn0();
-				break;
-			case 1:
-				this._latestPH = 924;
-				this._latestBlock = 1;
-				tardis.Go.haxegoruntime_init_36_guard.store(true);
-				new tardis._Go.Go_utf16_init(this._goroutine,[]);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 924;
-				this._latestBlock = -1;
-				new tardis._Go.Go_utf8_init(this._goroutine,[]);
-				this._Next = -2;
-				return this;
-			case -2:
-				this._latestPH = 924;
-				this._latestBlock = -2;
-				new tardis._Go.Go_hxutil_init(this._goroutine,[]);
-				this._Next = -3;
-				return this;
-			case -3:
-				this._latestPH = 924;
-				this._latestBlock = -3;
-				new tardis._Go.Go_haxegoruntime_init_36_1(this._goroutine,[]);
-				this._Next = -4;
-				return this;
-			case -4:
-				this._latestPH = 924;
-				this._latestBlock = -4;
-				this._Next = 2;
-				break;
-			case 2:
-				this._latestPH = 924;
-				this._latestBlock = 2;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_init
-});
-tardis.Go_hxutil_StringsUTF8 = function(gr,_bds) {
-	this._Next = 0;
-	this._t1 = false;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,1020,"Go_hxutil_StringsUTF8");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_StringsUTF8"] = tardis.Go_hxutil_StringsUTF8;
-$hxExpose(tardis.Go_hxutil_StringsUTF8, "Go_hxutil_StringsUTF8");
-tardis.Go_hxutil_StringsUTF8.__name__ = ["tardis","Go_hxutil_StringsUTF8"];
-tardis.Go_hxutil_StringsUTF8.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_StringsUTF8.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_StringsUTF8(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_StringsUTF8.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_StringsUTF8(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_StringsUTF8.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_StringsUTF8(gr,_bds);
-}
-tardis.Go_hxutil_StringsUTF8.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_StringsUTF8.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t1 = tardis.Force.uintCompare(this._t0,3) == 0;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1020;
-				this._latestBlock = 0;
-				this._t0 = "字".length;
-				this._t1 = tardis.Force.uintCompare(this._t0,3) == 0;
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_StringsUTF8
-});
-tardis.Go_haxegoruntime_M6 = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,221,"Go_haxegoruntime_M6");
-	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	this.p_a4 = p_a4;
-	this.p_a5 = p_a5;
-	this.p_a6 = p_a6;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_M6"] = tardis.Go_haxegoruntime_M6;
-$hxExpose(tardis.Go_haxegoruntime_M6, "Go_haxegoruntime_M6");
-tardis.Go_haxegoruntime_M6.__name__ = ["tardis","Go_haxegoruntime_M6"];
-tardis.Go_haxegoruntime_M6.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M6.callFromHaxe = function(p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M6(0,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M6.callFromRT = function(_gr,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	var _sf = new tardis.Go_haxegoruntime_M6(_gr,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M6.call = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	return new tardis.Go_haxegoruntime_M6(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6);
-}
-tardis.Go_haxegoruntime_M6.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M6.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 221;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_M6
-});
-tardis.Go_haxegoruntime_C1 = function(gr,_bds,p_funcName,p_a1) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,205,"Go_haxegoruntime_C1");
-	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	this.p_a1 = p_a1;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_C1"] = tardis.Go_haxegoruntime_C1;
-$hxExpose(tardis.Go_haxegoruntime_C1, "Go_haxegoruntime_C1");
-tardis.Go_haxegoruntime_C1.__name__ = ["tardis","Go_haxegoruntime_C1"];
-tardis.Go_haxegoruntime_C1.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C1.callFromHaxe = function(p_funcName,p_a1) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C1(0,[],p_funcName,p_a1).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C1.callFromRT = function(_gr,p_funcName,p_a1) {
-	var _sf = new tardis.Go_haxegoruntime_C1(_gr,[],p_funcName,p_a1).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C1.call = function(gr,_bds,p_funcName,p_a1) {
-	return new tardis.Go_haxegoruntime_C1(gr,_bds,p_funcName,p_a1);
-}
-tardis.Go_haxegoruntime_C1.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C1.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 205;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C1
-});
 tardis._Go.Go_main_init = function(gr,_bds) {
 	this._Next = 0;
 	this._t1 = null;
 	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,205,"Go_main_init");
+	tardis.StackFrameBasis.call(this,gr,716,"Go_main_init");
 	this._bds = _bds;
 	tardis.Scheduler.push(gr,this);
 };
@@ -13932,24 +10846,24 @@ tardis._Go.Go_main_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 205;
+				this._latestPH = 716;
 				this._latestBlock = 0;
 				this.SubFn0();
 				break;
 			case 1:
-				this._latestPH = 205;
+				this._latestPH = 716;
 				this._latestBlock = 1;
 				this.SubFn1();
 				new tardis._Go.Go_main_init_36_1(this._goroutine,[]);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 205;
+				this._latestPH = 716;
 				this._latestBlock = -1;
 				this._Next = 2;
 				break;
 			case 2:
-				this._latestPH = 205;
+				this._latestPH = 716;
 				this._latestBlock = 2;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
@@ -13964,242 +10878,60 @@ tardis._Go.Go_main_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,__class__: tardis._Go.Go_main_init
 });
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine = function(gr,_bds) {
+tardis._Go.Go_utf16_init = function(gr,_bds) {
 	this._Next = 0;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,403,"Go_haxegoruntime_runtime_NumGoroutine");
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,17,"Go_utf16_init");
 	this._bds = _bds;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis._Go.Go_haxegoruntime_runtime_NumGoroutine"] = tardis._Go.Go_haxegoruntime_runtime_NumGoroutine;
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.__name__ = ["tardis","_Go","Go_haxegoruntime_runtime_NumGoroutine"];
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.callFromHaxe = function() {
+$hxClasses["tardis._Go.Go_utf16_init"] = tardis._Go.Go_utf16_init;
+tardis._Go.Go_utf16_init.__name__ = ["tardis","_Go","Go_utf16_init"];
+tardis._Go.Go_utf16_init.__interfaces__ = [tardis.StackFrame];
+tardis._Go.Go_utf16_init.callFromHaxe = function() {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_runtime_NumGoroutine(0,[]).run();
+	var _sf = new tardis._Go.Go_utf16_init(0,[]).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
 }
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_haxegoruntime_runtime_NumGoroutine(_gr,[]).run();
+tardis._Go.Go_utf16_init.callFromRT = function(_gr) {
+	var _sf = new tardis._Go.Go_utf16_init(_gr,[]).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
-	return _sf._res;
 }
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.call = function(gr,_bds) {
-	return new tardis._Go.Go_haxegoruntime_runtime_NumGoroutine(gr,_bds);
+tardis._Go.Go_utf16_init.call = function(gr,_bds) {
+	return new tardis._Go.Go_utf16_init(gr,_bds);
 }
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_runtime_NumGoroutine.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t1 = js.Boot.__cast(this._t0 , Int);
+tardis._Go.Go_utf16_init.__super__ = tardis.StackFrameBasis;
+tardis._Go.Go_utf16_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn1: function() {
+		tardis.Go.utf16_init_36_guard.store(true);
+		this._Next = 2;
+	}
+	,SubFn0: function() {
+		var _t0;
+		_t0 = tardis.Go.utf16_init_36_guard.ref();
+		this._Next = _t0?2:1;
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 403;
-				this._latestBlock = 0;
-				this._t0 = tardis.Scheduler.grStacks.length;
-				this._t1 = js.Boot.__cast(this._t0 , Int);
-				this._res = this._t1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_runtime_NumGoroutine
-});
-tardis.Go_haxegoruntime_Host = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,192,"Go_haxegoruntime_Host");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_Host"] = tardis.Go_haxegoruntime_Host;
-$hxExpose(tardis.Go_haxegoruntime_Host, "Go_haxegoruntime_Host");
-tardis.Go_haxegoruntime_Host.__name__ = ["tardis","Go_haxegoruntime_Host"];
-tardis.Go_haxegoruntime_Host.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_Host.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_Host(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Host.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_haxegoruntime_Host(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Host.call = function(gr,_bds) {
-	return new tardis.Go_haxegoruntime_Host(gr,_bds);
-}
-tardis.Go_haxegoruntime_Host.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_Host.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 192;
-				this._latestBlock = 0;
-				this._res = "Go";
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_Host
-});
-tardis.Go_haxegoruntime_C3 = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,207,"Go_haxegoruntime_C3");
-	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_C3"] = tardis.Go_haxegoruntime_C3;
-$hxExpose(tardis.Go_haxegoruntime_C3, "Go_haxegoruntime_C3");
-tardis.Go_haxegoruntime_C3.__name__ = ["tardis","Go_haxegoruntime_C3"];
-tardis.Go_haxegoruntime_C3.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C3.callFromHaxe = function(p_funcName,p_a1,p_a2,p_a3) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C3(0,[],p_funcName,p_a1,p_a2,p_a3).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C3.callFromRT = function(_gr,p_funcName,p_a1,p_a2,p_a3) {
-	var _sf = new tardis.Go_haxegoruntime_C3(_gr,[],p_funcName,p_a1,p_a2,p_a3).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C3.call = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3) {
-	return new tardis.Go_haxegoruntime_C3(gr,_bds,p_funcName,p_a1,p_a2,p_a3);
-}
-tardis.Go_haxegoruntime_C3.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C3.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 207;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C3
-});
-tardis.Go_main_MouseUp = function(gr,_bds,p_x,p_y) {
-	this._Next = 0;
-	this._t5 = null;
-	this._t4 = null;
-	this._t3 = null;
-	this._t2 = null;
-	this._t1 = null;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,19,"Go_main_MouseUp");
-	this._bds = _bds;
-	this.p_x = p_x;
-	this.p_y = p_y;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_main_MouseUp"] = tardis.Go_main_MouseUp;
-$hxExpose(tardis.Go_main_MouseUp, "Go_main_MouseUp");
-tardis.Go_main_MouseUp.__name__ = ["tardis","Go_main_MouseUp"];
-tardis.Go_main_MouseUp.__interfaces__ = [tardis.StackFrame];
-tardis.Go_main_MouseUp.callFromHaxe = function(p_x,p_y) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_main_MouseUp(0,[],p_x,p_y).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis.Go_main_MouseUp.callFromRT = function(_gr,p_x,p_y) {
-	var _sf = new tardis.Go_main_MouseUp(_gr,[],p_x,p_y).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis.Go_main_MouseUp.call = function(gr,_bds,p_x,p_y) {
-	return new tardis.Go_main_MouseUp(gr,_bds,p_x,p_y);
-}
-tardis.Go_main_MouseUp.__super__ = tardis.StackFrameBasis;
-tardis.Go_main_MouseUp.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		var _t1;
-		var _t2;
-		var _t3;
-		var _t4;
-		this._t0 = tardis.Go.main_mouseEvents.ref();
-		_t1 = new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			_v = [0,0.0,0.0];
-			$r = _v;
-			return $r;
-		}(this)));
-		_t2 = _t1.addr(0);
-		_t2.store(0);
-		_t3 = _t1.addr(1);
-		_t3.store(this.p_x);
-		_t4 = _t1.addr(2);
-		_t4.store(this.p_y);
-		this._t5 = _t1.ref();
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 19;
+				this._latestPH = 17;
 				this._latestBlock = 0;
 				this.SubFn0();
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 19;
-				this._latestBlock = -1;
-				if(!this._t0.hasSpace()) return this;
-				this._t0.send(this._t5);
+				break;
+			case 1:
+				this._latestPH = 17;
+				this._latestBlock = 1;
+				tardis.Go.utf16_init_36_guard.store(true);
+				this._Next = 2;
+				break;
+			case 2:
+				this._latestPH = 17;
+				this._latestBlock = 2;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -14211,337 +10943,7 @@ tardis.Go_main_MouseUp.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,res: function() {
 		return null;
 	}
-	,__class__: tardis.Go_main_MouseUp
-});
-tardis.Go_utf8_DecodeLastRune = function(gr,_bds,p_p) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t24 = false;
-	this._t23 = 0;
-	this._t22 = 0;
-	this._t21 = 0;
-	this._t20 = null;
-	this._t19 = null;
-	this._t18 = 0;
-	this._t17 = 0;
-	this._t16 = false;
-	this._t15 = 0;
-	this._t14 = false;
-	this._t13 = false;
-	this._t12 = 0;
-	this._t11 = null;
-	this._t10 = 0;
-	this._t9 = 0;
-	this._t8 = false;
-	this._t7 = 0;
-	this._t6 = false;
-	this._t5 = 0;
-	this._t4 = 0;
-	this._t3 = null;
-	this._t2 = 0;
-	this._t1 = false;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,789,"Go_utf8_DecodeLastRune");
-	this._bds = _bds;
-	this.p_p = p_p;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_DecodeLastRune"] = tardis.Go_utf8_DecodeLastRune;
-$hxExpose(tardis.Go_utf8_DecodeLastRune, "Go_utf8_DecodeLastRune");
-tardis.Go_utf8_DecodeLastRune.__name__ = ["tardis","Go_utf8_DecodeLastRune"];
-tardis.Go_utf8_DecodeLastRune.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_DecodeLastRune.callFromHaxe = function(p_p) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_DecodeLastRune(0,[],p_p).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_DecodeLastRune.callFromRT = function(_gr,p_p) {
-	var _sf = new tardis.Go_utf8_DecodeLastRune(_gr,[],p_p).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_DecodeLastRune.call = function(gr,_bds,p_p) {
-	return new tardis.Go_utf8_DecodeLastRune(gr,_bds,p_p);
-}
-tardis.Go_utf8_DecodeLastRune.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_DecodeLastRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn12: function() {
-		var _t23;
-		var _t24;
-		this._t21 = this._t20.r0;
-		this._t22 = this._t20.r1;
-		this._latestPH = 815;
-		_t23 = this._t18 + this._t22;
-		_t24 = _t23 != this._t0;
-		this._Next = _t24?13:14;
-	}
-	,SubFn11: function() {
-		this._latestPH = 814;
-		this._t19 = this.p_p.subSlice(this._t18,this._t0);
-	}
-	,SubFn10: function() {
-		this._Next = 12;
-	}
-	,SubFn9: function() {
-		this._t17 = this._t15 - 1;
-		this._Next = 9;
-	}
-	,SubFn8: function() {
-		var _t16;
-		this._latestPH = 806;
-		_t16 = this._t15 >= this._t9;
-		this._Next = _t16?7:8;
-	}
-	,SubFn7: function() {
-		var _t14;
-		this._latestPH = 811;
-		_t14 = this._t15 < 0;
-		this._Next = _t14?11:12;
-	}
-	,SubFn6: function() {
-		this._Next = this._t13?8:10;
-	}
-	,SubFn5: function() {
-		var _t11;
-		this._latestPH = 807;
-		if(this._t15 < 0 || this._t15 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t11 = this.p_p.addr(this._t15);
-		this._t12 = _t11.ref() | 0;
-	}
-	,SubFn4: function() {
-		this._t10 = this._t2 - 1;
-		this._Next = 9;
-	}
-	,SubFn3: function() {
-		this._Next = 6;
-	}
-	,SubFn2: function() {
-		var _t8;
-		this._latestPH = 802;
-		this._t7 = this._t0 - 4;
-		this._latestPH = 803;
-		_t8 = this._t7 < 0;
-		this._Next = _t8?5:6;
-	}
-	,SubFn1: function() {
-		var _t3;
-		var _t4;
-		var _t6;
-		this._latestPH = 794;
-		this._t2 = this._t0 - 1;
-		this._latestPH = 795;
-		if(this._t2 < 0 || this._t2 >= this.p_p.len()) tardis.Scheduler.ioor();
-		_t3 = this.p_p.addr(this._t2);
-		_t4 = _t3.ref() | 0;
-		this._t5 = _t4;
-		this._latestPH = 796;
-		_t6 = this._t5 < 128;
-		this._Next = _t6?3:4;
-	}
-	,SubFn0: function() {
-		var _t1;
-		this._latestPH = 790;
-		this._t0 = (function($this) {
-			var $r;
-			var _v = $this.p_p;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._latestPH = 791;
-		_t1 = this._t0 == 0;
-		this._Next = _t1?1:2;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 789;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 789;
-				this._latestBlock = 1;
-				this._latestPH = 792;
-				this._res = { r0 : 65533, r1 : 0};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 2:
-				this._latestPH = 792;
-				this._latestBlock = 2;
-				this.SubFn1();
-				this._Phi = 2;
-				break;
-			case 3:
-				this._latestPH = 792;
-				this._latestBlock = 3;
-				this._latestPH = 797;
-				this._res = { r0 : this._t5, r1 : 1};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 4:
-				this._latestPH = 797;
-				this._latestBlock = 4;
-				this.SubFn2();
-				this._Phi = 4;
-				break;
-			case 5:
-				this._latestPH = 797;
-				this._latestBlock = 5;
-				this._Next = 6;
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 797;
-				this._latestBlock = 6;
-				this._latestPH = 802;
-				this._t9 = this._Phi == 4?this._t7:this._Phi == 5?0:0;
-				this._t10 = this._t2 - 1;
-				this._Next = 9;
-				this._Phi = 6;
-				break;
-			case 7:
-				this._latestPH = 802;
-				this._latestBlock = 7;
-				this.SubFn5();
-				this._latestPH = 807;
-				this._SF1 = new tardis.Go_utf8_RuneStart(this._goroutine,[],this._t12);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 807;
-				this._latestBlock = -1;
-				this._t13 = this._SF1.res();
-				this._Next = this._t13?8:10;
-				this._Phi = 7;
-				break;
-			case 8:
-				this._latestPH = 807;
-				this._latestBlock = 8;
-				this.SubFn7();
-				this._Phi = 8;
-				break;
-			case 9:
-				this._latestPH = 807;
-				this._latestBlock = 9;
-				this._latestPH = 794;
-				this._t15 = this._Phi == 6?this._t10:this._Phi == 10?this._t17:0;
-				this.SubFn8();
-				this._Phi = 9;
-				break;
-			case 10:
-				this._latestPH = 794;
-				this._latestBlock = 10;
-				this._t17 = this._t15 - 1;
-				this._Next = 9;
-				this._Phi = 10;
-				break;
-			case 11:
-				this._latestPH = 794;
-				this._latestBlock = 11;
-				this._Next = 12;
-				this._Phi = 11;
-				break;
-			case 12:
-				this._latestPH = 794;
-				this._latestBlock = 12;
-				this._t18 = this._Phi == 8?this._t15:this._Phi == 11?0:0;
-				this._latestPH = 814;
-				this._t19 = this.p_p.subSlice(this._t18,this._t0);
-				this._latestPH = 814;
-				this._SF2 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t19);
-				this._Next = -2;
-				return this;
-			case -2:
-				this._latestPH = 814;
-				this._latestBlock = -2;
-				this._t20 = this._SF2.res();
-				this.SubFn12();
-				this._Phi = 12;
-				break;
-			case 13:
-				this._latestPH = 814;
-				this._latestBlock = 13;
-				this._latestPH = 816;
-				this._res = { r0 : 65533, r1 : 1};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 14:
-				this._latestPH = 816;
-				this._latestBlock = 14;
-				this._latestPH = 818;
-				this._res = { r0 : this._t21, r1 : this._t22};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_DecodeLastRune
-});
-tardis.Go_hxutil_Host = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,1006,"Go_hxutil_Host");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_Host"] = tardis.Go_hxutil_Host;
-$hxExpose(tardis.Go_hxutil_Host, "Go_hxutil_Host");
-tardis.Go_hxutil_Host.__name__ = ["tardis","Go_hxutil_Host"];
-tardis.Go_hxutil_Host.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_Host.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_Host(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_Host.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_Host(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_Host.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_Host(gr,_bds);
-}
-tardis.Go_hxutil_Host.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_Host.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1006;
-				this._latestBlock = 0;
-				this._res = "go";
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_Host
+	,__class__: tardis._Go.Go_utf16_init
 });
 tardis.Go_utf16_Encode = function(gr,_bds,p_s) {
 	this._Next = 0;
@@ -14584,7 +10986,7 @@ tardis.Go_utf16_Encode = function(gr,_bds,p_s) {
 	this._t2 = 0;
 	this._t1 = 0;
 	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,498,"Go_utf16_Encode");
+	tardis.StackFrameBasis.call(this,gr,262,"Go_utf16_Encode");
 	this._bds = _bds;
 	this.p_s = p_s;
 	tardis.Scheduler.push(gr,this);
@@ -14620,12 +11022,12 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		var _t36;
 		this._t30 = this._t29.r0;
 		this._t31 = this._t29.r1;
-		this._latestPH = 518;
+		this._latestPH = 282;
 		if(this._t12 < 0 || this._t12 >= this._t9.len()) tardis.Scheduler.ioor();
 		_t32 = this._t9.addr(this._t12);
 		_t33 = this._t30;
 		_t32.store(_t33);
-		this._latestPH = 519;
+		this._latestPH = 283;
 		_t34 = this._t12 + 1;
 		if(_t34 < 0 || _t34 >= this._t9.len()) tardis.Scheduler.ioor();
 		_t35 = this._t9.addr(_t34);
@@ -14636,7 +11038,7 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,SubFn14: function() {
 		var _t28;
-		this._latestPH = 513;
+		this._latestPH = 277;
 		_t28 = this._t17 < 65536;
 		this._Next = _t28?9:15;
 	}
@@ -14654,14 +11056,14 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,SubFn10: function() {
 		var _t24;
-		this._latestPH = 510;
+		this._latestPH = 274;
 		_t24 = 55296 <= this._t17;
 		this._Next = _t24?12:13;
 	}
 	,SubFn9: function() {
 		var _t21;
 		var _t22;
-		this._latestPH = 514;
+		this._latestPH = 278;
 		if(this._t12 < 0 || this._t12 >= this._t9.len()) tardis.Scheduler.ioor();
 		_t21 = this._t9.addr(this._t12);
 		_t22 = this._t20;
@@ -14673,7 +11075,7 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		this._Next = 9;
 	}
 	,SubFn7: function() {
-		this._latestPH = 523;
+		this._latestPH = 287;
 		this._t19 = this._t9.subSlice(0,this._t12);
 	}
 	,SubFn6: function() {
@@ -14682,7 +11084,7 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		if(this._t14 < 0 || this._t14 >= this.p_s.len()) tardis.Scheduler.ioor();
 		_t16 = this.p_s.addr(this._t14);
 		this._t17 = _t16.ref() | 0;
-		this._latestPH = 510;
+		this._latestPH = 274;
 		_t18 = this._t17 < 0;
 		this._Next = _t18?8:10;
 	}
@@ -14697,7 +11099,7 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		this._Next = 1;
 	}
 	,SubFn3: function() {
-		this._latestPH = 506;
+		this._latestPH = 270;
 		this._t9 = new tardis.Slice(new tardis.Pointer((function($this) {
 			var $r;
 			var _v = new Array();
@@ -14725,7 +11127,7 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		if(this._t4 < 0 || this._t4 >= this.p_s.len()) tardis.Scheduler.ioor();
 		_t6 = this.p_s.addr(this._t4);
 		this._t7 = _t6.ref() | 0;
-		this._latestPH = 501;
+		this._latestPH = 265;
 		_t8 = this._t7 >= 65536;
 		this._Next = _t8?4:1;
 	}
@@ -14736,7 +11138,7 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		this._Next = _t5?2:3;
 	}
 	,SubFn0: function() {
-		this._latestPH = 499;
+		this._latestPH = 263;
 		this._t0 = (function($this) {
 			var $r;
 			var _v = $this.p_s;
@@ -14756,41 +11158,41 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 498;
+				this._latestPH = 262;
 				this._latestBlock = 0;
 				this.SubFn0();
 				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 498;
+				this._latestPH = 262;
 				this._latestBlock = 1;
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._t2 = this._Phi == 0?this._t0:this._Phi == 2?this._t2:this._Phi == 4?this._t11:0;
 				this._t3 = this._Phi == 0?-1:this._Phi == 2?this._t4:this._Phi == 4?this._t4:0;
 				this.SubFn1();
 				this._Phi = 1;
 				break;
 			case 2:
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._latestBlock = 2;
 				this.SubFn2();
 				this._Phi = 2;
 				break;
 			case 3:
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._latestBlock = 3;
 				this.SubFn3();
 				this._Phi = 3;
 				break;
 			case 4:
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._latestBlock = 4;
 				this._t11 = this._t2 + 1;
 				this._Next = 1;
 				this._Phi = 4;
 				break;
 			case 5:
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._latestBlock = 5;
 				this._t12 = this._Phi == 3?0:this._Phi == 9?this._t23:this._Phi == 15?this._t37:0;
 				this._t13 = this._Phi == 3?-1:this._Phi == 9?this._t14:this._Phi == 15?this._t14:0;
@@ -14798,77 +11200,77 @@ tardis.Go_utf16_Encode.prototype = $extend(tardis.StackFrameBasis.prototype,{
 				this._Phi = 5;
 				break;
 			case 6:
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._latestBlock = 6;
 				this.SubFn6();
 				this._Phi = 6;
 				break;
 			case 7:
-				this._latestPH = 499;
+				this._latestPH = 263;
 				this._latestBlock = 7;
-				this._latestPH = 523;
+				this._latestPH = 287;
 				this._t19 = this._t9.subSlice(0,this._t12);
-				this._latestPH = 523;
+				this._latestPH = 287;
 				this._res = this._t19;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 8:
-				this._latestPH = 523;
+				this._latestPH = 287;
 				this._latestBlock = 8;
 				this._Next = 9;
 				this._Phi = 8;
 				break;
 			case 9:
-				this._latestPH = 523;
+				this._latestPH = 287;
 				this._latestBlock = 9;
-				this._latestPH = 508;
+				this._latestPH = 272;
 				this._t20 = this._Phi == 8?65533:this._Phi == 14?this._t17:0;
 				this.SubFn9();
 				this._Phi = 9;
 				break;
 			case 10:
-				this._latestPH = 508;
+				this._latestPH = 272;
 				this._latestBlock = 10;
 				this.SubFn10();
 				this._Phi = 10;
 				break;
 			case 11:
-				this._latestPH = 508;
+				this._latestPH = 272;
 				this._latestBlock = 11;
 				this.SubFn11();
 				this._Phi = 11;
 				break;
 			case 12:
-				this._latestPH = 508;
+				this._latestPH = 272;
 				this._latestBlock = 12;
 				this._t26 = this._t17 < 57344;
 				this._Next = 13;
 				this._Phi = 12;
 				break;
 			case 13:
-				this._latestPH = 508;
+				this._latestPH = 272;
 				this._latestBlock = 13;
-				this._latestPH = 510;
+				this._latestPH = 274;
 				this._t27 = this._Phi == 10?false:this._Phi == 12?this._t26:false;
 				this._Next = this._t27?8:11;
 				this._Phi = 13;
 				break;
 			case 14:
-				this._latestPH = 510;
+				this._latestPH = 274;
 				this._latestBlock = 14;
 				this.SubFn14();
 				this._Phi = 14;
 				break;
 			case 15:
-				this._latestPH = 510;
+				this._latestPH = 274;
 				this._latestBlock = 15;
-				this._latestPH = 517;
+				this._latestPH = 281;
 				this._SF1 = new tardis.Go_utf16_EncodeRune(this._goroutine,[],this._t17);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 517;
+				this._latestPH = 281;
 				this._latestBlock = -1;
 				this._t29 = this._SF1.res();
 				this.SubFn15();
@@ -14940,7 +11342,7 @@ tardis.Go_utf8_EncodeRune = function(gr,_bds,p_p,p_r) {
 	this._t2 = null;
 	this._t1 = false;
 	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,880,"Go_utf8_EncodeRune");
+	tardis.StackFrameBasis.call(this,gr,644,"Go_utf8_EncodeRune");
 	this._bds = _bds;
 	this.p_p = p_p;
 	this.p_r = p_r;
@@ -14988,14 +11390,14 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		var _t50;
 		var _t51;
 		var _t52;
-		this._latestPH = 908;
+		this._latestPH = 672;
 		if(0 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t35 = this.p_p.addr(0);
 		_t36 = this._t18 >> tardis.Int64.getLow(new tardis.Int64(0,18));
 		_t37 = _t36;
 		_t38 = (240 | _t37) & 255;
 		_t35.store(_t38);
-		this._latestPH = 909;
+		this._latestPH = 673;
 		if(1 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t39 = this.p_p.addr(1);
 		_t40 = this._t18 >> tardis.Int64.getLow(new tardis.Int64(0,12));
@@ -15003,7 +11405,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		_t42 = _t41 & 63 & 255;
 		_t43 = (128 | _t42) & 255;
 		_t39.store(_t43);
-		this._latestPH = 910;
+		this._latestPH = 674;
 		if(2 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t44 = this.p_p.addr(2);
 		_t45 = this._t18 >> tardis.Int64.getLow(new tardis.Int64(0,6));
@@ -15011,7 +11413,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		_t47 = _t46 & 63 & 255;
 		_t48 = (128 | _t47) & 255;
 		_t44.store(_t48);
-		this._latestPH = 911;
+		this._latestPH = 675;
 		if(3 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t49 = this.p_p.addr(3);
 		_t50 = this._t18;
@@ -15033,14 +11435,14 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		var _t32;
 		var _t33;
 		var _t34;
-		this._latestPH = 902;
+		this._latestPH = 666;
 		if(0 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t22 = this.p_p.addr(0);
 		_t23 = this._t18 >> tardis.Int64.getLow(new tardis.Int64(0,12));
 		_t24 = _t23;
 		_t25 = (224 | _t24) & 255;
 		_t22.store(_t25);
-		this._latestPH = 903;
+		this._latestPH = 667;
 		if(1 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t26 = this.p_p.addr(1);
 		_t27 = this._t18 >> tardis.Int64.getLow(new tardis.Int64(0,6));
@@ -15048,7 +11450,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		_t29 = _t28 & 63 & 255;
 		_t30 = (128 | _t29) & 255;
 		_t26.store(_t30);
-		this._latestPH = 904;
+		this._latestPH = 668;
 		if(2 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t31 = this.p_p.addr(2);
 		_t32 = this._t18;
@@ -15058,14 +11460,14 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,SubFn9: function() {
 		var _t21;
-		this._latestPH = 897;
+		this._latestPH = 661;
 		_t21 = this._t16 <= 57343;
 		this._Next = _t21?7:8;
 	}
 	,SubFn8: function() {
 		var _t19;
 		var _t20;
-		this._latestPH = 901;
+		this._latestPH = 665;
 		_t19 = this._t18;
 		_t20 = tardis.Force.uintCompare(_t19,65535) <= 0;
 		this._Next = _t20?10:11;
@@ -15075,7 +11477,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,SubFn6: function() {
 		var _t17;
-		this._latestPH = 897;
+		this._latestPH = 661;
 		_t17 = 55296 <= this._t16;
 		this._Next = _t17?9:8;
 	}
@@ -15085,7 +11487,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,SubFn4: function() {
 		var _t14;
 		var _t15;
-		this._latestPH = 893;
+		this._latestPH = 657;
 		_t14 = this.p_r;
 		_t15 = tardis.Force.uintCompare(_t14,1114111) > 0;
 		this._Next = _t15?5:6;
@@ -15099,14 +11501,14 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 		var _t11;
 		var _t12;
 		var _t13;
-		this._latestPH = 888;
+		this._latestPH = 652;
 		if(0 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t6 = this.p_p.addr(0);
 		_t7 = this.p_r >> tardis.Int64.getLow(new tardis.Int64(0,6));
 		_t8 = _t7;
 		_t9 = (192 | _t8) & 255;
 		_t6.store(_t9);
-		this._latestPH = 889;
+		this._latestPH = 653;
 		if(1 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t10 = this.p_p.addr(1);
 		_t11 = this.p_r;
@@ -15117,7 +11519,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,SubFn2: function() {
 		var _t4;
 		var _t5;
-		this._latestPH = 887;
+		this._latestPH = 651;
 		_t4 = this.p_r;
 		_t5 = tardis.Force.uintCompare(_t4,2047) <= 0;
 		this._Next = _t5?3:4;
@@ -15125,7 +11527,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,SubFn1: function() {
 		var _t2;
 		var _t3;
-		this._latestPH = 883;
+		this._latestPH = 647;
 		if(0 >= this.p_p.len()) tardis.Scheduler.ioor();
 		_t2 = this.p_p.addr(0);
 		_t3 = this.p_r;
@@ -15134,7 +11536,7 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,SubFn0: function() {
 		var _t0;
 		var _t1;
-		this._latestPH = 882;
+		this._latestPH = 646;
 		_t0 = this.p_r;
 		_t1 = tardis.Force.uintCompare(_t0,127) <= 0;
 		this._Next = _t1?1:2;
@@ -15144,88 +11546,88 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._latestBlock = 0;
 				this.SubFn0();
 				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._latestBlock = 1;
 				this.SubFn1();
-				this._latestPH = 884;
+				this._latestPH = 648;
 				this._res = 1;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 2:
-				this._latestPH = 884;
+				this._latestPH = 648;
 				this._latestBlock = 2;
 				this.SubFn2();
 				this._Phi = 2;
 				break;
 			case 3:
-				this._latestPH = 884;
+				this._latestPH = 648;
 				this._latestBlock = 3;
 				this.SubFn3();
-				this._latestPH = 890;
+				this._latestPH = 654;
 				this._res = 2;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 4:
-				this._latestPH = 890;
+				this._latestPH = 654;
 				this._latestBlock = 4;
 				this.SubFn4();
 				this._Phi = 4;
 				break;
 			case 5:
-				this._latestPH = 890;
+				this._latestPH = 654;
 				this._latestBlock = 5;
 				this._Next = 6;
 				this._Phi = 5;
 				break;
 			case 6:
-				this._latestPH = 890;
+				this._latestPH = 654;
 				this._latestBlock = 6;
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._t16 = this._Phi == 4?this.p_r:this._Phi == 5?65533:0;
 				this.SubFn6();
 				this._Phi = 6;
 				break;
 			case 7:
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._latestBlock = 7;
 				this._Next = 8;
 				this._Phi = 7;
 				break;
 			case 8:
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._latestBlock = 8;
 				this._t18 = this._Phi == 6?this._t16:this._Phi == 9?this._t16:this._Phi == 7?65533:0;
 				this.SubFn8();
 				this._Phi = 8;
 				break;
 			case 9:
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._latestBlock = 9;
 				this.SubFn9();
 				this._Phi = 9;
 				break;
 			case 10:
-				this._latestPH = 880;
+				this._latestPH = 644;
 				this._latestBlock = 10;
 				this.SubFn10();
-				this._latestPH = 905;
+				this._latestPH = 669;
 				this._res = 3;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 11:
-				this._latestPH = 905;
+				this._latestPH = 669;
 				this._latestBlock = 11;
 				this.SubFn11();
-				this._latestPH = 912;
+				this._latestPH = 676;
 				this._res = 4;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
@@ -15240,166 +11642,189 @@ tardis.Go_utf8_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,__class__: tardis.Go_utf8_EncodeRune
 });
-tardis.Go_haxegoruntime_CPos = function(gr,_bds) {
+tardis.Go_haxegoruntime_RunesToUTF8 = function(gr,_bds,p_r) {
 	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,198,"Go_haxegoruntime_CPos");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_CPos"] = tardis.Go_haxegoruntime_CPos;
-$hxExpose(tardis.Go_haxegoruntime_CPos, "Go_haxegoruntime_CPos");
-tardis.Go_haxegoruntime_CPos.__name__ = ["tardis","Go_haxegoruntime_CPos"];
-tardis.Go_haxegoruntime_CPos.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_CPos.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_CPos(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_CPos.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_haxegoruntime_CPos(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_CPos.call = function(gr,_bds) {
-	return new tardis.Go_haxegoruntime_CPos(gr,_bds);
-}
-tardis.Go_haxegoruntime_CPos.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_CPos.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 198;
-				this._latestBlock = 0;
-				this._res = "<<code pos>>";
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_CPos
-});
-tardis.Go_haxegoruntime_M4 = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4) {
-	this._Next = 0;
+	this._Phi = 0;
+	this._t13 = null;
+	this._t11 = 0;
+	this._t10 = null;
+	this._t9 = null;
+	this._t8 = 0;
+	this._t7 = 0;
+	this._t6 = null;
+	this._t5 = false;
+	this._t4 = 0;
+	this._t3 = 0;
+	this._t2 = null;
+	this._t1 = 0;
 	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,219,"Go_haxegoruntime_M4");
+	tardis.StackFrameBasis.call(this,gr,144,"Go_haxegoruntime_RunesToUTF8");
 	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	this.p_a4 = p_a4;
+	this.p_r = p_r;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_haxegoruntime_M4"] = tardis.Go_haxegoruntime_M4;
-$hxExpose(tardis.Go_haxegoruntime_M4, "Go_haxegoruntime_M4");
-tardis.Go_haxegoruntime_M4.__name__ = ["tardis","Go_haxegoruntime_M4"];
-tardis.Go_haxegoruntime_M4.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M4.callFromHaxe = function(p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4) {
+$hxClasses["tardis.Go_haxegoruntime_RunesToUTF8"] = tardis.Go_haxegoruntime_RunesToUTF8;
+$hxExpose(tardis.Go_haxegoruntime_RunesToUTF8, "Go_haxegoruntime_RunesToUTF8");
+tardis.Go_haxegoruntime_RunesToUTF8.__name__ = ["tardis","Go_haxegoruntime_RunesToUTF8"];
+tardis.Go_haxegoruntime_RunesToUTF8.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_RunesToUTF8.callFromHaxe = function(p_r) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M4(0,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4).run();
+	var _sf = new tardis.Go_haxegoruntime_RunesToUTF8(0,[],p_r).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_M4.callFromRT = function(_gr,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4) {
-	var _sf = new tardis.Go_haxegoruntime_M4(_gr,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4).run();
+tardis.Go_haxegoruntime_RunesToUTF8.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_haxegoruntime_RunesToUTF8(_gr,[],p_r).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_M4.call = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4) {
-	return new tardis.Go_haxegoruntime_M4(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3,p_a4);
+tardis.Go_haxegoruntime_RunesToUTF8.call = function(gr,_bds,p_r) {
+	return new tardis.Go_haxegoruntime_RunesToUTF8(gr,_bds,p_r);
 }
-tardis.Go_haxegoruntime_M4.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M4.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
+tardis.Go_haxegoruntime_RunesToUTF8.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_RunesToUTF8.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn4: function() {
+		this._latestPH = 150;
+		this._t13 = (function($this) {
+			var $r;
+			var _v;
+			if($this._t2 == null) _v = $this._t9; else if($this._t2.len() == 0) _v = $this._t9; else if($this._t9 == null) _v = $this._t2; else if($this._t9.len() == 0) _v = $this._t2; else {
+				var l0 = $this._t2.len();
+				_v = new tardis.Slice(new tardis.Pointer((function($this) {
+					var $r;
+					var _v1 = new Array();
+					{
+						var _g1 = 0, _g = $this._t2.len() + $this._t9.len();
+						while(_g1 < _g) {
+							var _i = _g1++;
+							_v1[_i] = 0;
+						}
+					}
+					$r = _v1;
+					return $r;
+				}($this))),0,$this._t2.len() + $this._t9.len());
+				var _g = 0;
+				while(_g < l0) {
+					var _i = _g++;
+					_v.setAt(_i,tardis.Deep.copy($this._t2.getAt(_i)));
+				}
+				var _g1 = 0, _g = $this._t9.len();
+				while(_g1 < _g) {
+					var _i = _g1++;
+					_v.setAt(_i + l0,tardis.Deep.copy($this._t9.getAt(_i)));
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this));
+		this._Next = 1;
+	}
+	,SubFn3: function() {
+		var _t10;
+		this._t9 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g1 = 0, _g = $this._t8;
+				while(_g1 < _g) {
+					var _i = _g1++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,this._t8);
+		this._latestPH = 149;
+		if(this._t4 < 0 || this._t4 >= this.p_r.len()) tardis.Scheduler.ioor();
+		_t10 = this.p_r.addr(this._t4);
+		this._t11 = _t10.ref() | 0;
+	}
+	,SubFn2: function() {
+		var _t6;
+		this._latestPH = 148;
+		if(this._t4 < 0 || this._t4 >= this.p_r.len()) tardis.Scheduler.ioor();
+		_t6 = this.p_r.addr(this._t4);
+		this._t7 = _t6.ref() | 0;
+	}
+	,SubFn1: function() {
+		var _t5;
+		this._t4 = this._t3 + 1;
+		_t5 = this._t4 < this._t1;
+		this._Next = _t5?2:3;
+	}
+	,SubFn0: function() {
+		this._latestPH = 146;
+		this._t0 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < 0) {
+					var _i = _g++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,0);
+		this._t1 = (function($this) {
+			var $r;
+			var _v = $this.p_r;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._Next = 1;
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 219;
+				this._latestPH = 144;
 				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_M4
-});
-tardis._Go.Go_haxegoruntime_cstringToGo = function(gr,_bds,p_arg0) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,430,"Go_haxegoruntime_cstringToGo");
-	this._bds = _bds;
-	this.p_arg0 = p_arg0;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_cstringToGo"] = tardis._Go.Go_haxegoruntime_cstringToGo;
-tardis._Go.Go_haxegoruntime_cstringToGo.__name__ = ["tardis","_Go","Go_haxegoruntime_cstringToGo"];
-tardis._Go.Go_haxegoruntime_cstringToGo.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_cstringToGo.callFromHaxe = function(p_arg0) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_cstringToGo(0,[],p_arg0).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_cstringToGo.callFromRT = function(_gr,p_arg0) {
-	var _sf = new tardis._Go.Go_haxegoruntime_cstringToGo(_gr,[],p_arg0).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_cstringToGo.call = function(gr,_bds,p_arg0) {
-	return new tardis._Go.Go_haxegoruntime_cstringToGo(gr,_bds,p_arg0);
-}
-tardis._Go.Go_haxegoruntime_cstringToGo.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_cstringToGo.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.cstringToGo() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 430;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.cstringToGo() not yet implemented");
-				this._latestPH = 431;
-				tardis.Scheduler.panic(this._goroutine,this._t0);
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 144;
+				this._latestBlock = 1;
+				this._latestPH = 145;
+				this._t2 = this._Phi == 0?this._t0:this._Phi == 2?this._t13:new tardis.Slice(new tardis.Pointer(new Array()),0,0);
+				this._t3 = this._Phi == 0?-1:this._Phi == 2?this._t4:0;
+				this.SubFn1();
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 145;
+				this._latestBlock = 2;
+				this.SubFn2();
+				this._latestPH = 148;
+				this._SF1 = new tardis.Go_utf8_RuneLen(this._goroutine,[],this._t7);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 431;
+				this._latestPH = 148;
 				this._latestBlock = -1;
+				this._t8 = this._SF1.res();
+				this.SubFn3();
+				this._latestPH = 149;
+				new tardis.Go_utf8_EncodeRune(this._goroutine,[],this._t9,this._t11);
+				this._Next = -2;
+				return this;
+			case -2:
+				this._latestPH = 149;
+				this._latestBlock = -2;
+				this.SubFn4();
+				this._Phi = 2;
+				break;
+			case 3:
+				this._latestPH = 149;
+				this._latestBlock = 3;
+				this._latestPH = 152;
+				this._res = this._t2;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -15411,170 +11836,533 @@ tardis._Go.Go_haxegoruntime_cstringToGo.prototype = $extend(tardis.StackFrameBas
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis._Go.Go_haxegoruntime_cstringToGo
+	,__class__: tardis.Go_haxegoruntime_RunesToUTF8
 });
-tardis.Go_haxegoruntime_StringCompare = function(gr,_bds,p_a,p_b) {
+tardis.Go_utf16_IsSurrogate = function(gr,_bds,p_r) {
 	this._Next = 0;
 	this._Phi = 0;
-	this._t23 = false;
-	this._t22 = 0;
-	this._t21 = 0;
-	this._t20 = 0;
-	this._t19 = false;
-	this._t18 = 0;
-	this._t17 = null;
-	this._t16 = 0;
-	this._t15 = null;
-	this._t14 = false;
-	this._t13 = 0;
-	this._t12 = false;
-	this._t11 = 0;
-	this._t10 = 0;
-	this._t9 = false;
-	this._t8 = 0;
-	this._t7 = 0;
-	this._t6 = false;
-	this._t5 = 0;
-	this._t4 = null;
-	this._t3 = 0;
-	this._t2 = null;
-	this._t1 = null;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,168,"Go_haxegoruntime_StringCompare");
+	this._t2 = false;
+	this._t1 = false;
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,236,"Go_utf16_IsSurrogate");
 	this._bds = _bds;
-	this.p_a = p_a;
-	this.p_b = p_b;
+	this.p_r = p_r;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_haxegoruntime_StringCompare"] = tardis.Go_haxegoruntime_StringCompare;
-$hxExpose(tardis.Go_haxegoruntime_StringCompare, "Go_haxegoruntime_StringCompare");
-tardis.Go_haxegoruntime_StringCompare.__name__ = ["tardis","Go_haxegoruntime_StringCompare"];
-tardis.Go_haxegoruntime_StringCompare.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_StringCompare.callFromHaxe = function(p_a,p_b) {
+$hxClasses["tardis.Go_utf16_IsSurrogate"] = tardis.Go_utf16_IsSurrogate;
+$hxExpose(tardis.Go_utf16_IsSurrogate, "Go_utf16_IsSurrogate");
+tardis.Go_utf16_IsSurrogate.__name__ = ["tardis","Go_utf16_IsSurrogate"];
+tardis.Go_utf16_IsSurrogate.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf16_IsSurrogate.callFromHaxe = function(p_r) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_StringCompare(0,[],p_a,p_b).run();
+	var _sf = new tardis.Go_utf16_IsSurrogate(0,[],p_r).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_StringCompare.callFromRT = function(_gr,p_a,p_b) {
-	var _sf = new tardis.Go_haxegoruntime_StringCompare(_gr,[],p_a,p_b).run();
+tardis.Go_utf16_IsSurrogate.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_utf16_IsSurrogate(_gr,[],p_r).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_StringCompare.call = function(gr,_bds,p_a,p_b) {
-	return new tardis.Go_haxegoruntime_StringCompare(gr,_bds,p_a,p_b);
+tardis.Go_utf16_IsSurrogate.call = function(gr,_bds,p_r) {
+	return new tardis.Go_utf16_IsSurrogate(gr,_bds,p_r);
 }
-tardis.Go_haxegoruntime_StringCompare.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_StringCompare.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn7: function() {
-		var _t21;
-		var _t22;
+tardis.Go_utf16_IsSurrogate.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf16_IsSurrogate.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn1: function() {
+		this._t1 = this.p_r < 57344;
+		this._Next = 2;
+	}
+	,SubFn0: function() {
+		var _t0;
+		_t0 = 55296 <= this.p_r;
+		this._Next = _t0?1:2;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 236;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 236;
+				this._latestBlock = 1;
+				this._t1 = this.p_r < 57344;
+				this._Next = 2;
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 236;
+				this._latestBlock = 2;
+				this._latestPH = 237;
+				this._t2 = this._Phi == 0?false:this._Phi == 1?this._t1:false;
+				this._res = this._t2;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf16_IsSurrogate
+});
+tardis.Go_utf8_DecodeLastRune = function(gr,_bds,p_p) {
+	this._Next = 0;
+	this._Phi = 0;
+	this._t24 = false;
+	this._t23 = 0;
+	this._t22 = 0;
+	this._t21 = 0;
+	this._t20 = null;
+	this._t19 = null;
+	this._t18 = 0;
+	this._t17 = 0;
+	this._t16 = false;
+	this._t15 = 0;
+	this._t14 = false;
+	this._t13 = false;
+	this._t12 = 0;
+	this._t11 = null;
+	this._t10 = 0;
+	this._t9 = 0;
+	this._t8 = false;
+	this._t7 = 0;
+	this._t6 = false;
+	this._t5 = 0;
+	this._t4 = 0;
+	this._t3 = null;
+	this._t2 = 0;
+	this._t1 = false;
+	this._t0 = 0;
+	tardis.StackFrameBasis.call(this,gr,553,"Go_utf8_DecodeLastRune");
+	this._bds = _bds;
+	this.p_p = p_p;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_DecodeLastRune"] = tardis.Go_utf8_DecodeLastRune;
+$hxExpose(tardis.Go_utf8_DecodeLastRune, "Go_utf8_DecodeLastRune");
+tardis.Go_utf8_DecodeLastRune.__name__ = ["tardis","Go_utf8_DecodeLastRune"];
+tardis.Go_utf8_DecodeLastRune.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_DecodeLastRune.callFromHaxe = function(p_p) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_DecodeLastRune(0,[],p_p).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_DecodeLastRune.callFromRT = function(_gr,p_p) {
+	var _sf = new tardis.Go_utf8_DecodeLastRune(_gr,[],p_p).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_DecodeLastRune.call = function(gr,_bds,p_p) {
+	return new tardis.Go_utf8_DecodeLastRune(gr,_bds,p_p);
+}
+tardis.Go_utf8_DecodeLastRune.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_DecodeLastRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn12: function() {
 		var _t23;
-		this._latestPH = 185;
-		_t21 = (function($this) {
-			var $r;
-			var _v = $this._t0;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t22 = (function($this) {
-			var $r;
-			var _v = $this._t1;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t23 = _t21 < _t22;
-		this._Next = _t23?11:12;
+		var _t24;
+		this._t21 = this._t20.r0;
+		this._t22 = this._t20.r1;
+		this._latestPH = 579;
+		_t23 = this._t18 + this._t22;
+		_t24 = _t23 != this._t0;
+		this._Next = _t24?13:14;
+	}
+	,SubFn11: function() {
+		this._latestPH = 578;
+		this._t19 = this.p_p.subSlice(this._t18,this._t0);
+	}
+	,SubFn10: function() {
+		this._Next = 12;
+	}
+	,SubFn9: function() {
+		this._t17 = this._t15 - 1;
+		this._Next = 9;
+	}
+	,SubFn8: function() {
+		var _t16;
+		this._latestPH = 570;
+		_t16 = this._t15 >= this._t9;
+		this._Next = _t16?7:8;
+	}
+	,SubFn7: function() {
+		var _t14;
+		this._latestPH = 575;
+		_t14 = this._t15 < 0;
+		this._Next = _t14?11:12;
 	}
 	,SubFn6: function() {
-		this._t20 = this._t10 + 1;
-		this._Next = 3;
+		this._Next = this._t13?8:10;
 	}
 	,SubFn5: function() {
-		var _t15;
-		var _t16;
-		var _t17;
-		var _t18;
-		var _t19;
-		this._latestPH = 177;
-		if(this._t10 < 0 || this._t10 >= this._t0.len()) tardis.Scheduler.ioor();
-		_t15 = this._t0.addr(this._t10);
-		_t16 = _t15.ref() | 0;
-		if(this._t10 < 0 || this._t10 >= this._t1.len()) tardis.Scheduler.ioor();
-		_t17 = this._t1.addr(this._t10);
-		_t18 = _t17.ref() | 0;
-		_t19 = tardis.Force.uintCompare(_t16,_t18) > 0;
-		this._Next = _t19?7:8;
+		var _t11;
+		this._latestPH = 571;
+		if(this._t15 < 0 || this._t15 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t11 = this.p_p.addr(this._t15);
+		this._t12 = _t11.ref() | 0;
 	}
 	,SubFn4: function() {
+		this._t10 = this._t2 - 1;
+		this._Next = 9;
+	}
+	,SubFn3: function() {
+		this._Next = 6;
+	}
+	,SubFn2: function() {
+		var _t8;
+		this._latestPH = 566;
+		this._t7 = this._t0 - 4;
+		this._latestPH = 567;
+		_t8 = this._t7 < 0;
+		this._Next = _t8?5:6;
+	}
+	,SubFn1: function() {
+		var _t3;
+		var _t4;
+		var _t6;
+		this._latestPH = 558;
+		this._t2 = this._t0 - 1;
+		this._latestPH = 559;
+		if(this._t2 < 0 || this._t2 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t3 = this.p_p.addr(this._t2);
+		_t4 = _t3.ref() | 0;
+		this._t5 = _t4;
+		this._latestPH = 560;
+		_t6 = this._t5 < 128;
+		this._Next = _t6?3:4;
+	}
+	,SubFn0: function() {
+		var _t1;
+		this._latestPH = 554;
+		this._t0 = (function($this) {
+			var $r;
+			var _v = $this.p_p;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._latestPH = 555;
+		_t1 = this._t0 == 0;
+		this._Next = _t1?1:2;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 553;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 553;
+				this._latestBlock = 1;
+				this._latestPH = 556;
+				this._res = { r0 : 65533, r1 : 0};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 2:
+				this._latestPH = 556;
+				this._latestBlock = 2;
+				this.SubFn1();
+				this._Phi = 2;
+				break;
+			case 3:
+				this._latestPH = 556;
+				this._latestBlock = 3;
+				this._latestPH = 561;
+				this._res = { r0 : this._t5, r1 : 1};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 4:
+				this._latestPH = 561;
+				this._latestBlock = 4;
+				this.SubFn2();
+				this._Phi = 4;
+				break;
+			case 5:
+				this._latestPH = 561;
+				this._latestBlock = 5;
+				this._Next = 6;
+				this._Phi = 5;
+				break;
+			case 6:
+				this._latestPH = 561;
+				this._latestBlock = 6;
+				this._latestPH = 566;
+				this._t9 = this._Phi == 4?this._t7:this._Phi == 5?0:0;
+				this._t10 = this._t2 - 1;
+				this._Next = 9;
+				this._Phi = 6;
+				break;
+			case 7:
+				this._latestPH = 566;
+				this._latestBlock = 7;
+				this.SubFn5();
+				this._latestPH = 571;
+				this._SF1 = new tardis.Go_utf8_RuneStart(this._goroutine,[],this._t12);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 571;
+				this._latestBlock = -1;
+				this._t13 = this._SF1.res();
+				this._Next = this._t13?8:10;
+				this._Phi = 7;
+				break;
+			case 8:
+				this._latestPH = 571;
+				this._latestBlock = 8;
+				this.SubFn7();
+				this._Phi = 8;
+				break;
+			case 9:
+				this._latestPH = 571;
+				this._latestBlock = 9;
+				this._latestPH = 558;
+				this._t15 = this._Phi == 6?this._t10:this._Phi == 10?this._t17:0;
+				this.SubFn8();
+				this._Phi = 9;
+				break;
+			case 10:
+				this._latestPH = 558;
+				this._latestBlock = 10;
+				this._t17 = this._t15 - 1;
+				this._Next = 9;
+				this._Phi = 10;
+				break;
+			case 11:
+				this._latestPH = 558;
+				this._latestBlock = 11;
+				this._Next = 12;
+				this._Phi = 11;
+				break;
+			case 12:
+				this._latestPH = 558;
+				this._latestBlock = 12;
+				this._t18 = this._Phi == 8?this._t15:this._Phi == 11?0:0;
+				this._latestPH = 578;
+				this._t19 = this.p_p.subSlice(this._t18,this._t0);
+				this._latestPH = 578;
+				this._SF2 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t19);
+				this._Next = -2;
+				return this;
+			case -2:
+				this._latestPH = 578;
+				this._latestBlock = -2;
+				this._t20 = this._SF2.res();
+				this.SubFn12();
+				this._Phi = 12;
+				break;
+			case 13:
+				this._latestPH = 578;
+				this._latestBlock = 13;
+				this._latestPH = 580;
+				this._res = { r0 : 65533, r1 : 1};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 14:
+				this._latestPH = 580;
+				this._latestBlock = 14;
+				this._latestPH = 582;
+				this._res = { r0 : this._t21, r1 : this._t22};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_DecodeLastRune
+});
+tardis.Go_haxegoruntime_UTF8toRunes = function(gr,_bds,p_s) {
+	this._Next = 0;
+	this._Phi = 0;
+	this._t25 = false;
+	this._t24 = 0;
+	this._t23 = 0;
+	this._t22 = 0;
+	this._t21 = 0;
+	this._t20 = 0;
+	this._t19 = null;
+	this._t18 = 0;
+	this._t17 = 0;
+	this._t16 = null;
+	this._t15 = 0;
+	this._t14 = 0;
+	this._t13 = null;
+	this._t12 = 0;
+	this._t11 = null;
+	this._t10 = false;
+	this._t9 = 0;
+	this._t8 = false;
+	this._t7 = 0;
+	this._t6 = 0;
+	this._t5 = 0;
+	this._t4 = null;
+	this._t3 = 0;
+	this._t2 = 0;
+	this._t1 = null;
+	this._t0 = 0;
+	tardis.StackFrameBasis.call(this,gr,104,"Go_haxegoruntime_UTF8toRunes");
+	this._bds = _bds;
+	this.p_s = p_s;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_haxegoruntime_UTF8toRunes"] = tardis.Go_haxegoruntime_UTF8toRunes;
+$hxExpose(tardis.Go_haxegoruntime_UTF8toRunes, "Go_haxegoruntime_UTF8toRunes");
+tardis.Go_haxegoruntime_UTF8toRunes.__name__ = ["tardis","Go_haxegoruntime_UTF8toRunes"];
+tardis.Go_haxegoruntime_UTF8toRunes.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_UTF8toRunes.callFromHaxe = function(p_s) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_haxegoruntime_UTF8toRunes(0,[],p_s).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_UTF8toRunes.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_haxegoruntime_UTF8toRunes(_gr,[],p_s).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_UTF8toRunes.call = function(gr,_bds,p_s) {
+	return new tardis.Go_haxegoruntime_UTF8toRunes(gr,_bds,p_s);
+}
+tardis.Go_haxegoruntime_UTF8toRunes.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_UTF8toRunes.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn6: function() {
+		var _t23;
+		var _t24;
+		var _t25;
+		this._latestPH = 109;
+		_t23 = (function($this) {
+			var $r;
+			var _v = $this.p_s;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t24 = _t23 - this._t5;
+		_t25 = this._t22 < _t24;
+		this._Next = _t25?5:6;
+	}
+	,SubFn5: function() {
+		var _t19;
+		this._t17 = this._t16.r0;
+		this._t18 = this._t16.r1;
+		this._latestPH = 113;
+		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
+		_t19 = this._t1.addr(this._t6);
+		_t19.store(this._t17);
+		this._t20 = this._t5 + this._t18;
+		this._t21 = this._t6 + 1;
+		this._Next = 3;
+	}
+	,SubFn4: function() {
+		var _t11;
+		var _t12;
 		var _t13;
 		var _t14;
-		_t13 = (function($this) {
+		this._latestPH = 110;
+		if(this._t22 < 0 || this._t22 >= this._t4.len()) tardis.Scheduler.ioor();
+		_t11 = this._t4.addr(this._t22);
+		_t12 = this._t5 + this._t22;
+		if(_t12 < 0 || _t12 >= this.p_s.len()) tardis.Scheduler.ioor();
+		_t13 = this.p_s.addr(_t12);
+		_t14 = _t13.ref() | 0;
+		_t11.store(_t14);
+		this._t15 = this._t22 + 1;
+		this._Next = 7;
+	}
+	,SubFn3: function() {
+		var _t9;
+		var _t10;
+		_t9 = (function($this) {
 			var $r;
 			var _v = $this._t1;
 			$r = _v == null?0:_v.end - _v.start;
 			return $r;
 		}(this));
-		_t14 = this._t10 < _t13;
-		this._Next = _t14?1:2;
-	}
-	,SubFn3: function() {
-		var _t11;
-		var _t12;
-		this._latestPH = 173;
-		_t11 = (function($this) {
-			var $r;
-			var _v = $this._t0;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t12 = this._t10 < _t11;
-		this._Next = _t12?4:2;
+		_t10 = this._t6 < _t9;
+		this._Next = _t10?1:2;
 	}
 	,SubFn2: function() {
 		var _t7;
 		var _t8;
-		var _t9;
-		this._latestPH = 182;
+		this._latestPH = 107;
 		_t7 = (function($this) {
 			var $r;
-			var _v = $this._t0;
+			var _v = $this.p_s;
 			$r = _v == null?0:_v.end - _v.start;
 			return $r;
 		}(this));
-		_t8 = (function($this) {
-			var $r;
-			var _v = $this._t1;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		_t9 = _t7 == _t8;
-		this._Next = _t9?9:10;
+		_t8 = this._t5 < _t7;
+		this._Next = _t8?4:2;
 	}
 	,SubFn1: function() {
 		var _t2;
 		var _t3;
-		var _t4;
-		var _t5;
-		var _t6;
-		this._latestPH = 174;
-		if(this._t10 < 0 || this._t10 >= this._t0.len()) tardis.Scheduler.ioor();
-		_t2 = this._t0.addr(this._t10);
-		_t3 = _t2.ref() | 0;
-		if(this._t10 < 0 || this._t10 >= this._t1.len()) tardis.Scheduler.ioor();
-		_t4 = this._t1.addr(this._t10);
-		_t5 = _t4.ref() | 0;
-		_t6 = tardis.Force.uintCompare(_t3,_t5) < 0;
-		this._Next = _t6?5:6;
+		this._latestPH = 108;
+		_t2 = (function($this) {
+			var $r;
+			var _v = $this.p_s;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t3 = _t2 - this._t5;
+		this._t4 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < _t3) {
+					var _i = _g++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,_t3);
+		this._Next = 7;
 	}
 	,SubFn0: function() {
-		this._latestPH = 170;
-		this._t0 = tardis.Force.toUTF8slice(this._goroutine,this.p_a);
-		this._latestPH = 171;
-		this._t1 = tardis.Force.toUTF8slice(this._goroutine,this.p_b);
+		this._latestPH = 105;
+		this._t1 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g1 = 0, _g = $this._t0;
+				while(_g1 < _g) {
+					var _i = _g1++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,this._t0);
 		this._Next = 3;
 	}
 	,run: function() {
@@ -15582,97 +12370,339 @@ tardis.Go_haxegoruntime_StringCompare.prototype = $extend(tardis.StackFrameBasis
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 168;
+				this._latestPH = 104;
 				this._latestBlock = 0;
-				this._latestPH = 170;
-				this._t0 = tardis.Force.toUTF8slice(this._goroutine,this.p_a);
-				this._latestPH = 171;
-				this._t1 = tardis.Force.toUTF8slice(this._goroutine,this.p_b);
-				this._Next = 3;
+				this._latestPH = 105;
+				this._SF1 = new tardis.Go_utf8_RuneCount(this._goroutine,[],this.p_s);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 105;
+				this._latestBlock = -1;
+				this._t0 = this._SF1.res();
+				this.SubFn0();
 				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 168;
+				this._latestPH = 105;
 				this._latestBlock = 1;
 				this.SubFn1();
 				this._Phi = 1;
 				break;
 			case 2:
-				this._latestPH = 168;
+				this._latestPH = 105;
 				this._latestBlock = 2;
-				this.SubFn2();
-				this._Phi = 2;
-				break;
-			case 3:
-				this._latestPH = 168;
-				this._latestBlock = 3;
-				this._latestPH = 172;
-				this._t10 = this._Phi == 0?0:this._Phi == 8?this._t20:0;
-				this.SubFn3();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 172;
-				this._latestBlock = 4;
-				this.SubFn4();
-				this._Phi = 4;
-				break;
-			case 5:
-				this._latestPH = 172;
-				this._latestBlock = 5;
-				this._latestPH = 175;
-				this._res = -1;
+				this._latestPH = 116;
+				this._res = this._t1;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
+			case 3:
+				this._latestPH = 116;
+				this._latestBlock = 3;
+				this._latestPH = 106;
+				this._t5 = this._Phi == 0?0:this._Phi == 6?this._t20:0;
+				this._latestPH = 107;
+				this._t6 = this._Phi == 0?0:this._Phi == 6?this._t21:0;
+				this.SubFn2();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 107;
+				this._latestBlock = 4;
+				this.SubFn3();
+				this._Phi = 4;
+				break;
+			case 5:
+				this._latestPH = 107;
+				this._latestBlock = 5;
+				this.SubFn4();
+				this._Phi = 5;
+				break;
 			case 6:
-				this._latestPH = 175;
+				this._latestPH = 107;
 				this._latestBlock = 6;
+				this._latestPH = 112;
+				this._SF2 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t4);
+				this._Next = -2;
+				return this;
+			case -2:
+				this._latestPH = 112;
+				this._latestBlock = -2;
+				this._t16 = this._SF2.res();
 				this.SubFn5();
 				this._Phi = 6;
 				break;
 			case 7:
-				this._latestPH = 175;
+				this._latestPH = 112;
 				this._latestBlock = 7;
-				this._latestPH = 178;
-				this._res = 1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 8:
-				this._latestPH = 178;
-				this._latestBlock = 8;
-				this._t20 = this._t10 + 1;
-				this._Next = 3;
-				this._Phi = 8;
+				this._latestPH = 109;
+				this._t22 = this._Phi == 1?0:this._Phi == 5?this._t15:0;
+				this.SubFn6();
+				this._Phi = 7;
 				break;
-			case 9:
-				this._latestPH = 178;
-				this._latestBlock = 9;
-				this._latestPH = 183;
-				this._res = 0;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_haxegoruntime_UTF8toRunes
+});
+tardis._Go.Go_haxegoruntime_init_36_1 = function(gr,_bds) {
+	this._Next = 0;
+	this._t11 = null;
+	tardis.StackFrameBasis.call(this,gr,79,"Go_haxegoruntime_init_36_1");
+	this._bds = _bds;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis._Go.Go_haxegoruntime_init_36_1"] = tardis._Go.Go_haxegoruntime_init_36_1;
+tardis._Go.Go_haxegoruntime_init_36_1.__name__ = ["tardis","_Go","Go_haxegoruntime_init_36_1"];
+tardis._Go.Go_haxegoruntime_init_36_1.__interfaces__ = [tardis.StackFrame];
+tardis._Go.Go_haxegoruntime_init_36_1.callFromHaxe = function() {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis._Go.Go_haxegoruntime_init_36_1(0,[]).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+}
+tardis._Go.Go_haxegoruntime_init_36_1.callFromRT = function(_gr) {
+	var _sf = new tardis._Go.Go_haxegoruntime_init_36_1(_gr,[]).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+}
+tardis._Go.Go_haxegoruntime_init_36_1.call = function(gr,_bds) {
+	return new tardis._Go.Go_haxegoruntime_init_36_1(gr,_bds);
+}
+tardis._Go.Go_haxegoruntime_init_36_1.__super__ = tardis.StackFrameBasis;
+tardis._Go.Go_haxegoruntime_init_36_1.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn1: function() {
+	}
+	,SubFn0: function() {
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 79;
+				this._latestBlock = 0;
+				this._latestPH = 81;
+				new tardis.Go_haxegoruntime_UTF16toRunes(this._goroutine,[],null);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 81;
+				this._latestBlock = -1;
+				this._latestPH = 82;
+				new tardis.Go_haxegoruntime_UTF8toRunes(this._goroutine,[],null);
+				this._Next = -2;
+				return this;
+			case -2:
+				this._latestPH = 82;
+				this._latestBlock = -2;
+				this._latestPH = 83;
+				new tardis.Go_haxegoruntime_Raw2Runes(this._goroutine,[],null);
+				this._Next = -3;
+				return this;
+			case -3:
+				this._latestPH = 83;
+				this._latestBlock = -3;
+				this._latestPH = 84;
+				new tardis.Go_haxegoruntime_RunesToUTF16(this._goroutine,[],null);
+				this._Next = -4;
+				return this;
+			case -4:
+				this._latestPH = 84;
+				this._latestBlock = -4;
+				this._latestPH = 85;
+				new tardis.Go_haxegoruntime_RunesToUTF8(this._goroutine,[],null);
+				this._Next = -5;
+				return this;
+			case -5:
+				this._latestPH = 85;
+				this._latestBlock = -5;
+				this._latestPH = 86;
+				new tardis.Go_haxegoruntime_Runes2Raw(this._goroutine,[],null);
+				this._Next = -6;
+				return this;
+			case -6:
+				this._latestPH = 86;
+				this._latestBlock = -6;
+				this._latestPH = 87;
+				new tardis.Go_haxegoruntime_Rune2Raw(this._goroutine,[],42);
+				this._Next = -7;
+				return this;
+			case -7:
+				this._latestPH = 87;
+				this._latestBlock = -7;
+				this._latestPH = 88;
+				new tardis.Go_haxegoruntime_StringCompare(this._goroutine,[],"X","Y");
+				this._Next = -8;
+				return this;
+			case -8:
+				this._latestPH = 88;
+				this._latestBlock = -8;
+				this._latestPH = 90;
+				new tardis.Go_utf16_Decode(this._goroutine,[],null);
+				this._Next = -9;
+				return this;
+			case -9:
+				this._latestPH = 90;
+				this._latestBlock = -9;
+				this._latestPH = 91;
+				new tardis.Go_utf8_RuneCount(this._goroutine,[],null);
+				this._Next = -10;
+				return this;
+			case -10:
+				this._latestPH = 91;
+				this._latestBlock = -10;
+				this._latestPH = 92;
+				this._SF11 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],null);
+				this._Next = -11;
+				return this;
+			case -11:
+				this._latestPH = 92;
+				this._latestBlock = -11;
+				this._t11 = this._SF11.res();
+				this._latestPH = 93;
+				new tardis.Go_utf16_Encode(this._goroutine,[],null);
+				this._Next = -12;
+				return this;
+			case -12:
+				this._latestPH = 93;
+				this._latestBlock = -12;
+				this._latestPH = 94;
+				new tardis.Go_utf8_RuneLen(this._goroutine,[],42);
+				this._Next = -13;
+				return this;
+			case -13:
+				this._latestPH = 94;
+				this._latestBlock = -13;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
-			case 10:
-				this._latestPH = 183;
-				this._latestBlock = 10;
-				this.SubFn7();
-				this._Phi = 10;
-				break;
-			case 11:
-				this._latestPH = 183;
-				this._latestBlock = 11;
-				this._latestPH = 186;
-				this._res = -1;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return null;
+	}
+	,__class__: tardis._Go.Go_haxegoruntime_init_36_1
+});
+tardis.Go_main_MouseGoroutine = function(gr,_bds) {
+	this._Next = 0;
+	tardis.StackFrameBasis.call(this,gr,23,"Go_main_MouseGoroutine");
+	this._bds = _bds;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_main_MouseGoroutine"] = tardis.Go_main_MouseGoroutine;
+$hxExpose(tardis.Go_main_MouseGoroutine, "Go_main_MouseGoroutine");
+tardis.Go_main_MouseGoroutine.__name__ = ["tardis","Go_main_MouseGoroutine"];
+tardis.Go_main_MouseGoroutine.__interfaces__ = [tardis.StackFrame];
+tardis.Go_main_MouseGoroutine.callFromHaxe = function() {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_main_MouseGoroutine(0,[]).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+}
+tardis.Go_main_MouseGoroutine.callFromRT = function(_gr) {
+	var _sf = new tardis.Go_main_MouseGoroutine(_gr,[]).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+}
+tardis.Go_main_MouseGoroutine.call = function(gr,_bds) {
+	return new tardis.Go_main_MouseGoroutine(gr,_bds);
+}
+tardis.Go_main_MouseGoroutine.__super__ = tardis.StackFrameBasis;
+tardis.Go_main_MouseGoroutine.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		this._latestPH = 24;
+		new tardis._Go.Go_main_handleMouse(tardis.Scheduler.makeGoroutine(),[]);
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 23;
+				this._latestBlock = 0;
+				this._latestPH = 24;
+				new tardis._Go.Go_main_handleMouse(tardis.Scheduler.makeGoroutine(),[]);
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
-			case 12:
-				this._latestPH = 186;
-				this._latestBlock = 12;
-				this._latestPH = 188;
-				this._res = 1;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return null;
+	}
+	,__class__: tardis.Go_main_MouseGoroutine
+});
+tardis.Go_utf8_FullRune = function(gr,_bds,p_p) {
+	this._Next = 0;
+	this._t4 = false;
+	this._t3 = false;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,517,"Go_utf8_FullRune");
+	this._bds = _bds;
+	this.p_p = p_p;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_FullRune"] = tardis.Go_utf8_FullRune;
+$hxExpose(tardis.Go_utf8_FullRune, "Go_utf8_FullRune");
+tardis.Go_utf8_FullRune.__name__ = ["tardis","Go_utf8_FullRune"];
+tardis.Go_utf8_FullRune.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_FullRune.callFromHaxe = function(p_p) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_FullRune(0,[],p_p).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_FullRune.callFromRT = function(_gr,p_p) {
+	var _sf = new tardis.Go_utf8_FullRune(_gr,[],p_p).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_FullRune.call = function(gr,_bds,p_p) {
+	return new tardis.Go_utf8_FullRune(gr,_bds,p_p);
+}
+tardis.Go_utf8_FullRune.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_FullRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		this._t3 = this._t0.r2;
+		this._t4 = !this._t3;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 517;
+				this._latestBlock = 0;
+				this._latestPH = 518;
+				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInternal(this._goroutine,[],this.p_p);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 518;
+				this._latestBlock = -1;
+				this._t0 = this._SF1.res();
+				this._t3 = this._t0.r2;
+				this._t4 = !this._t3;
+				this._latestPH = 519;
+				this._res = this._t4;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -15684,7 +12714,150 @@ tardis.Go_haxegoruntime_StringCompare.prototype = $extend(tardis.StackFrameBasis
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_haxegoruntime_StringCompare
+	,__class__: tardis.Go_utf8_FullRune
+});
+tardis.Go_utf8_ValidString = function(gr,_bds,p_s) {
+	this._Next = 0;
+	this._t10 = false;
+	this._t9 = 0;
+	this._t7 = null;
+	this._t6 = "";
+	this._t5 = false;
+	this._t4 = 0;
+	this._t3 = 0;
+	this._t2 = false;
+	this._t1 = null;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,729,"Go_utf8_ValidString");
+	this._bds = _bds;
+	this.p_s = p_s;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_ValidString"] = tardis.Go_utf8_ValidString;
+$hxExpose(tardis.Go_utf8_ValidString, "Go_utf8_ValidString");
+tardis.Go_utf8_ValidString.__name__ = ["tardis","Go_utf8_ValidString"];
+tardis.Go_utf8_ValidString.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_ValidString.callFromHaxe = function(p_s) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_ValidString(0,[],p_s).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_ValidString.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_utf8_ValidString(_gr,[],p_s).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_ValidString.call = function(gr,_bds,p_s) {
+	return new tardis.Go_utf8_ValidString(gr,_bds,p_s);
+}
+tardis.Go_utf8_ValidString.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_ValidString.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn4: function() {
+		var _t10;
+		this._t9 = this._t7.r1;
+		this._latestPH = 737;
+		_t10 = this._t9 == 1;
+		this._Next = _t10?5:1;
+	}
+	,SubFn3: function() {
+		this._latestPH = 736;
+		this._t6 = tardis.Force.toRawString(this._goroutine,tardis.Force.toUTF8slice(this._goroutine,this.p_s).subSlice(this._t3,-1));
+	}
+	,SubFn2: function() {
+		var _t5;
+		this._t3 = this._t1.r1;
+		this._t4 = this._t1.r2;
+		this._latestPH = 731;
+		_t5 = this._t4 == 65533;
+		this._Next = _t5?4:1;
+	}
+	,SubFn1: function() {
+		var _t2;
+		this._t1 = (function($this) {
+			var $r;
+			var _thisK = $this._t0.k;
+			$r = $this._t0.k >= $this._t0.v.len()?{ r0 : false, r1 : 0, r2 : 0}:(function($this) {
+				var $r;
+				var _dr = tardis.Go_utf8_DecodeRune.callFromRT($this._goroutine,$this._t0.v.subSlice(_thisK,-1));
+				$this._t0.k += _dr.r1;
+				$r = { r0 : true, r1 : js.Boot.__cast(_thisK , Int), r2 : js.Boot.__cast(_dr.r0 , Int)};
+				return $r;
+			}($this));
+			return $r;
+		}(this));
+		_t2 = this._t1.r0;
+		this._Next = _t2?2:3;
+	}
+	,SubFn0: function() {
+		this._latestPH = 730;
+		this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
+		this._Next = 1;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 729;
+				this._latestBlock = 0;
+				this._latestPH = 730;
+				this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
+				this._Next = 1;
+				break;
+			case 1:
+				this._latestPH = 729;
+				this._latestBlock = 1;
+				this.SubFn1();
+				break;
+			case 2:
+				this._latestPH = 729;
+				this._latestBlock = 2;
+				this.SubFn2();
+				break;
+			case 3:
+				this._latestPH = 729;
+				this._latestBlock = 3;
+				this._latestPH = 742;
+				this._res = true;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 4:
+				this._latestPH = 742;
+				this._latestBlock = 4;
+				this._latestPH = 736;
+				this._t6 = tardis.Force.toRawString(this._goroutine,tardis.Force.toUTF8slice(this._goroutine,this.p_s).subSlice(this._t3,-1));
+				this._latestPH = 736;
+				this._SF1 = new tardis.Go_utf8_DecodeRuneInString(this._goroutine,[],this._t6);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 736;
+				this._latestBlock = -1;
+				this._t7 = this._SF1.res();
+				this.SubFn4();
+				break;
+			case 5:
+				this._latestPH = 736;
+				this._latestBlock = 5;
+				this._latestPH = 738;
+				this._res = false;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_ValidString
 });
 tardis._Go.Go_main_init_36_1 = function(gr,_bds) {
 	this._Next = 0;
@@ -15738,160 +12911,6 @@ tardis._Go.Go_main_init_36_1.prototype = $extend(tardis.StackFrameBasis.prototyp
 	}
 	,__class__: tardis._Go.Go_main_init_36_1
 });
-tardis.Go_hxutil_Zilen = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,1017,"Go_hxutil_Zilen");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_Zilen"] = tardis.Go_hxutil_Zilen;
-$hxExpose(tardis.Go_hxutil_Zilen, "Go_hxutil_Zilen");
-tardis.Go_hxutil_Zilen.__name__ = ["tardis","Go_hxutil_Zilen"];
-tardis.Go_hxutil_Zilen.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_Zilen.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_Zilen(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_Zilen.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_Zilen(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_Zilen.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_Zilen(gr,_bds);
-}
-tardis.Go_hxutil_Zilen.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_Zilen.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1017;
-				this._latestBlock = 0;
-				this._res = 3;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_Zilen
-});
-tardis._Go.Go_haxegoruntime_runtime_Gosched = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,402,"Go_haxegoruntime_runtime_Gosched");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_runtime_Gosched"] = tardis._Go.Go_haxegoruntime_runtime_Gosched;
-tardis._Go.Go_haxegoruntime_runtime_Gosched.__name__ = ["tardis","_Go","Go_haxegoruntime_runtime_Gosched"];
-tardis._Go.Go_haxegoruntime_runtime_Gosched.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_runtime_Gosched.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_runtime_Gosched(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis._Go.Go_haxegoruntime_runtime_Gosched.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_haxegoruntime_runtime_Gosched(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis._Go.Go_haxegoruntime_runtime_Gosched.call = function(gr,_bds) {
-	return new tardis._Go.Go_haxegoruntime_runtime_Gosched(gr,_bds);
-}
-tardis._Go.Go_haxegoruntime_runtime_Gosched.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_runtime_Gosched.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 402;
-				this._latestBlock = 0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_runtime_Gosched
-});
-tardis.Go_haxegoruntime_C2 = function(gr,_bds,p_funcName,p_a1,p_a2) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,206,"Go_haxegoruntime_C2");
-	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_C2"] = tardis.Go_haxegoruntime_C2;
-$hxExpose(tardis.Go_haxegoruntime_C2, "Go_haxegoruntime_C2");
-tardis.Go_haxegoruntime_C2.__name__ = ["tardis","Go_haxegoruntime_C2"];
-tardis.Go_haxegoruntime_C2.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C2.callFromHaxe = function(p_funcName,p_a1,p_a2) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C2(0,[],p_funcName,p_a1,p_a2).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C2.callFromRT = function(_gr,p_funcName,p_a1,p_a2) {
-	var _sf = new tardis.Go_haxegoruntime_C2(_gr,[],p_funcName,p_a1,p_a2).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C2.call = function(gr,_bds,p_funcName,p_a1,p_a2) {
-	return new tardis.Go_haxegoruntime_C2(gr,_bds,p_funcName,p_a1,p_a2);
-}
-tardis.Go_haxegoruntime_C2.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C2.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 206;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C2
-});
 tardis._Go.Go_main_main = function(gr,_bds) {
 	this._Next = 0;
 	tardis.StackFrameBasis.call(this,gr,3,"Go_main_main");
@@ -15938,53 +12957,434 @@ tardis._Go.Go_main_main.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,__class__: tardis._Go.Go_main_main
 });
-tardis.Go_haxegoruntime_UTF16toRunes = function(gr,_bds,p_s) {
+tardis.Go_utf16_Decode = function(gr,_bds,p_s) {
 	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,83,"Go_haxegoruntime_UTF16toRunes");
+	this._Phi = 0;
+	this._t42 = false;
+	this._t41 = false;
+	this._t40 = 0;
+	this._t39 = 0;
+	this._t38 = null;
+	this._t37 = false;
+	this._t36 = false;
+	this._t35 = 0;
+	this._t34 = 0;
+	this._t33 = false;
+	this._t32 = 0;
+	this._t31 = null;
+	this._t30 = 0;
+	this._t29 = false;
+	this._t28 = false;
+	this._t27 = 0;
+	this._t26 = null;
+	this._t25 = 0;
+	this._t24 = false;
+	this._t23 = 0;
+	this._t22 = null;
+	this._t21 = 0;
+	this._t20 = 0;
+	this._t19 = 0;
+	this._t18 = 0;
+	this._t17 = 0;
+	this._t16 = null;
+	this._t15 = 0;
+	this._t14 = 0;
+	this._t13 = null;
+	this._t12 = 0;
+	this._t11 = 0;
+	this._t10 = 0;
+	this._t9 = false;
+	this._t8 = 0;
+	this._t7 = 0;
+	this._t6 = 0;
+	this._t5 = null;
+	this._t4 = false;
+	this._t3 = 0;
+	this._t2 = null;
+	this._t1 = null;
+	this._t0 = 0;
+	tardis.StackFrameBasis.call(this,gr,292,"Go_utf16_Decode");
 	this._bds = _bds;
 	this.p_s = p_s;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_haxegoruntime_UTF16toRunes"] = tardis.Go_haxegoruntime_UTF16toRunes;
-$hxExpose(tardis.Go_haxegoruntime_UTF16toRunes, "Go_haxegoruntime_UTF16toRunes");
-tardis.Go_haxegoruntime_UTF16toRunes.__name__ = ["tardis","Go_haxegoruntime_UTF16toRunes"];
-tardis.Go_haxegoruntime_UTF16toRunes.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_UTF16toRunes.callFromHaxe = function(p_s) {
+$hxClasses["tardis.Go_utf16_Decode"] = tardis.Go_utf16_Decode;
+$hxExpose(tardis.Go_utf16_Decode, "Go_utf16_Decode");
+tardis.Go_utf16_Decode.__name__ = ["tardis","Go_utf16_Decode"];
+tardis.Go_utf16_Decode.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf16_Decode.callFromHaxe = function(p_s) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_UTF16toRunes(0,[],p_s).run();
+	var _sf = new tardis.Go_utf16_Decode(0,[],p_s).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_UTF16toRunes.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_haxegoruntime_UTF16toRunes(_gr,[],p_s).run();
+tardis.Go_utf16_Decode.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_utf16_Decode(_gr,[],p_s).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_UTF16toRunes.call = function(gr,_bds,p_s) {
-	return new tardis.Go_haxegoruntime_UTF16toRunes(gr,_bds,p_s);
+tardis.Go_utf16_Decode.call = function(gr,_bds,p_s) {
+	return new tardis.Go_utf16_Decode(gr,_bds,p_s);
 }
-tardis.Go_haxegoruntime_UTF16toRunes.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_UTF16toRunes.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
+tardis.Go_utf16_Decode.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf16_Decode.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn16: function() {
+		this._Next = this._t42?6:13;
+	}
+	,SubFn15: function() {
+		this._latestPH = 303;
+		this._t41 = tardis.Force.uintCompare(this._t3,57344) < 0;
+		this._Next = 15;
+	}
+	,SubFn14: function() {
+		var _t38;
+		var _t39;
+		this._latestPH = 309;
+		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
+		_t38 = this._t1.addr(this._t6);
+		_t39 = this._t3;
+		_t38.store(_t39);
+		this._t40 = this._t6 + 1;
+		this._Next = 4;
+	}
+	,SubFn13: function() {
+		var _t37;
+		_t37 = tardis.Force.uintCompare(this._t3,56320) < 0;
+		this._Next = _t37?11:9;
+	}
+	,SubFn12: function() {
+		var _t34;
+		var _t35;
+		var _t36;
+		this._latestPH = 297;
+		_t34 = this._t7 + 1;
+		_t35 = (function($this) {
+			var $r;
+			var _v = $this.p_s;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t36 = _t34 < _t35;
+		this._Next = _t36?10:9;
+	}
+	,SubFn11: function() {
+		var _t30;
+		var _t31;
+		var _t32;
+		var _t33;
+		_t30 = this._t7 + 1;
+		if(_t30 < 0 || _t30 >= this.p_s.len()) tardis.Scheduler.ioor();
+		_t31 = this.p_s.addr(_t30);
+		_t32 = _t31.ref() | 0;
+		_t33 = tardis.Force.uintCompare(56320,_t32) <= 0;
+		this._Next = _t33?8:9;
+	}
+	,SubFn10: function() {
+		this._Next = this._t29?5:7;
+	}
+	,SubFn9: function() {
+		var _t25;
+		var _t26;
+		var _t27;
+		this._latestPH = 298;
+		_t25 = this._t7 + 1;
+		if(_t25 < 0 || _t25 >= this.p_s.len()) tardis.Scheduler.ioor();
+		_t26 = this.p_s.addr(_t25);
+		_t27 = _t26.ref() | 0;
+		this._t28 = tardis.Force.uintCompare(_t27,57344) < 0;
+		this._Next = 9;
+	}
+	,SubFn8: function() {
+		var _t24;
+		this._latestPH = 303;
+		_t24 = tardis.Force.uintCompare(55296,this._t3) <= 0;
+		this._Next = _t24?14:15;
+	}
+	,SubFn7: function() {
+		var _t22;
+		this._latestPH = 305;
+		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
+		_t22 = this._t1.addr(this._t6);
+		_t22.store(65533);
+		this._t23 = this._t6 + 1;
+		this._Next = 4;
+	}
+	,SubFn6: function() {
+		this._t13.store(this._t19);
+		this._t20 = this._t7 + 1;
+		this._t21 = this._t6 + 1;
+		this._Next = 4;
+	}
+	,SubFn5: function() {
+		var _t15;
+		var _t16;
+		var _t17;
+		this._latestPH = 300;
+		if(this._t6 < 0 || this._t6 >= this._t1.len()) tardis.Scheduler.ioor();
+		this._t13 = this._t1.addr(this._t6);
+		this._t14 = this._t3;
+		_t15 = this._t7 + 1;
+		if(_t15 < 0 || _t15 >= this.p_s.len()) tardis.Scheduler.ioor();
+		_t16 = this.p_s.addr(_t15);
+		_t17 = _t16.ref() | 0;
+		this._t18 = _t17;
+	}
+	,SubFn4: function() {
+		this._t12 = this._t11 + 1;
+		this._Next = 3;
+	}
+	,SubFn3: function() {
+		var _t8;
+		var _t9;
+		this._latestPH = 295;
+		_t8 = (function($this) {
+			var $r;
+			var _v = $this.p_s;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t9 = this._t7 < _t8;
+		this._Next = _t9?1:2;
+	}
+	,SubFn2: function() {
+		this._latestPH = 313;
+		this._t5 = this._t1.subSlice(0,this._t6);
+	}
+	,SubFn1: function() {
+		var _t2;
+		var _t4;
+		this._latestPH = 296;
+		if(this._t7 < 0 || this._t7 >= this.p_s.len()) tardis.Scheduler.ioor();
+		_t2 = this.p_s.addr(this._t7);
+		this._t3 = _t2.ref() | 0;
+		this._latestPH = 297;
+		_t4 = tardis.Force.uintCompare(55296,this._t3) <= 0;
+		this._Next = _t4?12:9;
+	}
+	,SubFn0: function() {
+		var _t0;
+		this._latestPH = 293;
+		_t0 = (function($this) {
+			var $r;
+			var _v = $this.p_s;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._t1 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < _t0) {
+					var _i = _g++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,_t0);
+		this._Next = 3;
+	}
+	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 83;
+				this._latestPH = 292;
 				this._latestBlock = 0;
-				this._latestPH = 84;
-				this._SF1 = new tardis.Go_utf16_Decode(this._goroutine,[],this.p_s);
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 292;
+				this._latestBlock = 1;
+				this.SubFn1();
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 292;
+				this._latestBlock = 2;
+				this._latestPH = 313;
+				this._t5 = this._t1.subSlice(0,this._t6);
+				this._latestPH = 313;
+				this._res = this._t5;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 3:
+				this._latestPH = 313;
+				this._latestBlock = 3;
+				this._latestPH = 294;
+				this._t6 = this._Phi == 0?0:this._Phi == 4?this._t10:0;
+				this._latestPH = 295;
+				this._t7 = this._Phi == 0?0:this._Phi == 4?this._t12:0;
+				this.SubFn3();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 295;
+				this._latestBlock = 4;
+				this._latestPH = 294;
+				this._t10 = this._Phi == 5?this._t21:this._Phi == 6?this._t23:this._Phi == 13?this._t40:0;
+				this._latestPH = 295;
+				this._t11 = this._Phi == 5?this._t20:this._Phi == 6?this._t7:this._Phi == 13?this._t7:0;
+				this._t12 = this._t11 + 1;
+				this._Next = 3;
+				this._Phi = 4;
+				break;
+			case 5:
+				this._latestPH = 295;
+				this._latestBlock = 5;
+				this.SubFn5();
+				this._latestPH = 300;
+				this._SF1 = new tardis.Go_utf16_DecodeRune(this._goroutine,[],this._t14,this._t18);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 84;
+				this._latestPH = 300;
+				this._latestBlock = -1;
+				this._t19 = this._SF1.res();
+				this._t13.store(this._t19);
+				this._t20 = this._t7 + 1;
+				this._t21 = this._t6 + 1;
+				this._Next = 4;
+				this._Phi = 5;
+				break;
+			case 6:
+				this._latestPH = 300;
+				this._latestBlock = 6;
+				this.SubFn7();
+				this._Phi = 6;
+				break;
+			case 7:
+				this._latestPH = 300;
+				this._latestBlock = 7;
+				this.SubFn8();
+				this._Phi = 7;
+				break;
+			case 8:
+				this._latestPH = 300;
+				this._latestBlock = 8;
+				this.SubFn9();
+				this._Phi = 8;
+				break;
+			case 9:
+				this._latestPH = 300;
+				this._latestBlock = 9;
+				this._latestPH = 298;
+				this._t29 = this._Phi == 1?false:this._Phi == 12?false:this._Phi == 11?false:this._Phi == 10?false:this._Phi == 8?this._t28:false;
+				this._Next = this._t29?5:7;
+				this._Phi = 9;
+				break;
+			case 10:
+				this._latestPH = 298;
+				this._latestBlock = 10;
+				this.SubFn11();
+				this._Phi = 10;
+				break;
+			case 11:
+				this._latestPH = 298;
+				this._latestBlock = 11;
+				this.SubFn12();
+				this._Phi = 11;
+				break;
+			case 12:
+				this._latestPH = 298;
+				this._latestBlock = 12;
+				this.SubFn13();
+				this._Phi = 12;
+				break;
+			case 13:
+				this._latestPH = 298;
+				this._latestBlock = 13;
+				this.SubFn14();
+				this._Phi = 13;
+				break;
+			case 14:
+				this._latestPH = 298;
+				this._latestBlock = 14;
+				this._latestPH = 303;
+				this._t41 = tardis.Force.uintCompare(this._t3,57344) < 0;
+				this._Next = 15;
+				this._Phi = 14;
+				break;
+			case 15:
+				this._latestPH = 298;
+				this._latestBlock = 15;
+				this._latestPH = 303;
+				this._t42 = this._Phi == 7?false:this._Phi == 14?this._t41:false;
+				this._Next = this._t42?6:13;
+				this._Phi = 15;
+				break;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf16_Decode
+});
+tardis.Go_utf8_DecodeRune = function(gr,_bds,p_p) {
+	this._Next = 0;
+	this._t2 = 0;
+	this._t1 = 0;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,533,"Go_utf8_DecodeRune");
+	this._bds = _bds;
+	this.p_p = p_p;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_DecodeRune"] = tardis.Go_utf8_DecodeRune;
+$hxExpose(tardis.Go_utf8_DecodeRune, "Go_utf8_DecodeRune");
+tardis.Go_utf8_DecodeRune.__name__ = ["tardis","Go_utf8_DecodeRune"];
+tardis.Go_utf8_DecodeRune.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_DecodeRune.callFromHaxe = function(p_p) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_DecodeRune(0,[],p_p).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_DecodeRune.callFromRT = function(_gr,p_p) {
+	var _sf = new tardis.Go_utf8_DecodeRune(_gr,[],p_p).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_DecodeRune.call = function(gr,_bds,p_p) {
+	return new tardis.Go_utf8_DecodeRune(gr,_bds,p_p);
+}
+tardis.Go_utf8_DecodeRune.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_DecodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		this._t1 = this._t0.r0;
+		this._t2 = this._t0.r1;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 533;
+				this._latestBlock = 0;
+				this._latestPH = 534;
+				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInternal(this._goroutine,[],this.p_p);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 534;
 				this._latestBlock = -1;
 				this._t0 = this._SF1.res();
-				this._res = this._t0;
+				this._t1 = this._t0.r0;
+				this._t2 = this._t0.r1;
+				this._latestPH = 535;
+				this._res = { r0 : this._t1, r1 : this._t2};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -15996,164 +13396,548 @@ tardis.Go_haxegoruntime_UTF16toRunes.prototype = $extend(tardis.StackFrameBasis.
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_haxegoruntime_UTF16toRunes
+	,__class__: tardis.Go_utf8_DecodeRune
 });
-tardis.Go_hxutil_HAXE = function(gr,_bds,p_code) {
+tardis.Go_utf8_RuneCount = function(gr,_bds,p_p) {
 	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,1003,"Go_hxutil_HAXE");
-	this._bds = _bds;
-	this.p_code = p_code;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_hxutil_HAXE"] = tardis.Go_hxutil_HAXE;
-$hxExpose(tardis.Go_hxutil_HAXE, "Go_hxutil_HAXE");
-tardis.Go_hxutil_HAXE.__name__ = ["tardis","Go_hxutil_HAXE"];
-tardis.Go_hxutil_HAXE.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_HAXE.callFromHaxe = function(p_code) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_HAXE(0,[],p_code).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_hxutil_HAXE.callFromRT = function(_gr,p_code) {
-	var _sf = new tardis.Go_hxutil_HAXE(_gr,[],p_code).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_hxutil_HAXE.call = function(gr,_bds,p_code) {
-	return new tardis.Go_hxutil_HAXE(gr,_bds,p_code);
-}
-tardis.Go_hxutil_HAXE.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_HAXE.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 1003;
-				this._latestBlock = 0;
-				this._res = 0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_hxutil_HAXE
-});
-tardis.Go_haxegoruntime_C4 = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4) {
-	this._Next = 0;
+	this._Phi = 0;
+	this._t16 = 0;
+	this._t15 = 0;
+	this._t13 = null;
+	this._t12 = null;
+	this._t11 = 0;
+	this._t10 = 0;
+	this._t9 = 0;
+	this._t8 = 0;
+	this._t7 = false;
+	this._t6 = 0;
+	this._t5 = 0;
+	this._t4 = 0;
+	this._t3 = 0;
+	this._t2 = false;
+	this._t1 = 0;
 	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,208,"Go_haxegoruntime_C4");
+	tardis.StackFrameBasis.call(this,gr,681,"Go_utf8_RuneCount");
 	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	this.p_a4 = p_a4;
+	this.p_p = p_p;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_haxegoruntime_C4"] = tardis.Go_haxegoruntime_C4;
-$hxExpose(tardis.Go_haxegoruntime_C4, "Go_haxegoruntime_C4");
-tardis.Go_haxegoruntime_C4.__name__ = ["tardis","Go_haxegoruntime_C4"];
-tardis.Go_haxegoruntime_C4.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C4.callFromHaxe = function(p_funcName,p_a1,p_a2,p_a3,p_a4) {
+$hxClasses["tardis.Go_utf8_RuneCount"] = tardis.Go_utf8_RuneCount;
+$hxExpose(tardis.Go_utf8_RuneCount, "Go_utf8_RuneCount");
+tardis.Go_utf8_RuneCount.__name__ = ["tardis","Go_utf8_RuneCount"];
+tardis.Go_utf8_RuneCount.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_RuneCount.callFromHaxe = function(p_p) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C4(0,[],p_funcName,p_a1,p_a2,p_a3,p_a4).run();
+	var _sf = new tardis.Go_utf8_RuneCount(0,[],p_p).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_C4.callFromRT = function(_gr,p_funcName,p_a1,p_a2,p_a3,p_a4) {
-	var _sf = new tardis.Go_haxegoruntime_C4(_gr,[],p_funcName,p_a1,p_a2,p_a3,p_a4).run();
+tardis.Go_utf8_RuneCount.callFromRT = function(_gr,p_p) {
+	var _sf = new tardis.Go_utf8_RuneCount(_gr,[],p_p).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_C4.call = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4) {
-	return new tardis.Go_haxegoruntime_C4(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4);
+tardis.Go_utf8_RuneCount.call = function(gr,_bds,p_p) {
+	return new tardis.Go_utf8_RuneCount(gr,_bds,p_p);
 }
-tardis.Go_haxegoruntime_C4.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C4.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
+tardis.Go_utf8_RuneCount.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_RuneCount.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn6: function() {
+		this._t15 = this._t13.r1;
+		this._t16 = this._t3 + this._t15;
+		this._Next = 5;
+	}
+	,SubFn5: function() {
+		this._latestPH = 688;
+		this._t12 = this.p_p.subSlice(this._t3,-1);
+	}
+	,SubFn4: function() {
+		this._t11 = this._t4 + 1;
+		this._Next = 3;
+	}
+	,SubFn3: function() {
+		this._t8 = this._t3 + 1;
+		this._Next = 5;
+	}
+	,SubFn2: function() {
+		var _t6;
+		var _t7;
+		this._latestPH = 684;
+		_t6 = (function($this) {
+			var $r;
+			var _v = $this.p_p;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t7 = this._t3 < _t6;
+		this._Next = _t7?1:2;
+	}
+	,SubFn1: function() {
+		var _t0;
+		var _t1;
+		var _t2;
+		this._latestPH = 685;
+		if(this._t3 < 0 || this._t3 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t0 = this.p_p.addr(this._t3);
+		_t1 = _t0.ref() | 0;
+		_t2 = tardis.Force.uintCompare(_t1,128) < 0;
+		this._Next = _t2?4:6;
+	}
+	,SubFn0: function() {
+		this._Next = 3;
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 208;
+				this._latestPH = 681;
 				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
+				this._Next = 3;
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 681;
+				this._latestBlock = 1;
+				this.SubFn1();
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 681;
+				this._latestBlock = 2;
+				this._latestPH = 692;
+				this._res = this._t4;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C4
-});
-tardis.Go_haxegoruntime_Goexit = function(gr,_bds) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,409,"Go_haxegoruntime_Goexit");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_Goexit"] = tardis.Go_haxegoruntime_Goexit;
-$hxExpose(tardis.Go_haxegoruntime_Goexit, "Go_haxegoruntime_Goexit");
-tardis.Go_haxegoruntime_Goexit.__name__ = ["tardis","Go_haxegoruntime_Goexit"];
-tardis.Go_haxegoruntime_Goexit.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_Goexit.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_Goexit(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis.Go_haxegoruntime_Goexit.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_haxegoruntime_Goexit(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis.Go_haxegoruntime_Goexit.call = function(gr,_bds) {
-	return new tardis.Go_haxegoruntime_Goexit(gr,_bds);
-}
-tardis.Go_haxegoruntime_Goexit.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_Goexit.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.Goexit() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 409;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.Goexit() not yet implemented");
-				tardis.Scheduler.panic(this._goroutine,this._t0);
+			case 3:
+				this._latestPH = 692;
+				this._latestBlock = 3;
+				this._latestPH = 682;
+				this._t3 = this._Phi == 0?0:this._Phi == 5?this._t9:0;
+				this._latestPH = 683;
+				this._t4 = this._Phi == 0?0:this._Phi == 5?this._t11:0;
+				this._latestPH = 688;
+				this._t5 = this._Phi == 0?0:this._Phi == 5?this._t10:0;
+				this.SubFn2();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 688;
+				this._latestBlock = 4;
+				this._t8 = this._t3 + 1;
+				this._Next = 5;
+				this._Phi = 4;
+				break;
+			case 5:
+				this._latestPH = 688;
+				this._latestBlock = 5;
+				this._latestPH = 682;
+				this._t9 = this._Phi == 4?this._t8:this._Phi == 6?this._t16:0;
+				this._latestPH = 688;
+				this._t10 = this._Phi == 4?this._t5:this._Phi == 6?this._t15:0;
+				this._t11 = this._t4 + 1;
+				this._Next = 3;
+				this._Phi = 5;
+				break;
+			case 6:
+				this._latestPH = 688;
+				this._latestBlock = 6;
+				this._latestPH = 688;
+				this._t12 = this.p_p.subSlice(this._t3,-1);
+				this._SF1 = new tardis.Go_utf8_DecodeRune(this._goroutine,[],this._t12);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 409;
+				this._latestPH = 688;
 				this._latestBlock = -1;
+				this._t13 = this._SF1.res();
+				this._t15 = this._t13.r1;
+				this._t16 = this._t3 + this._t15;
+				this._Next = 5;
+				this._Phi = 6;
+				break;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_RuneCount
+});
+tardis.Go_haxegoruntime_Runes2Raw = function(gr,_bds,p_r) {
+	this._Next = 0;
+	this._Phi = 0;
+	this._t26 = 0;
+	this._t25 = 0;
+	this._t24 = null;
+	this._t23 = null;
+	this._t22 = false;
+	this._t21 = 0;
+	this._t20 = 0;
+	this._t19 = null;
+	this._t18 = null;
+	this._t17 = 0;
+	this._t16 = 0;
+	this._t15 = null;
+	this._t14 = null;
+	this._t13 = false;
+	this._t12 = 0;
+	this._t11 = 0;
+	this._t10 = false;
+	this._t9 = 0;
+	this._t8 = null;
+	this._t7 = 0;
+	this._t6 = null;
+	this._t5 = 0;
+	this._t4 = null;
+	this._t3 = 0;
+	this._t2 = null;
+	this._t1 = false;
+	this._t0 = 0;
+	tardis.StackFrameBasis.call(this,gr,156,"Go_haxegoruntime_Runes2Raw");
+	this._bds = _bds;
+	this.p_r = p_r;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_haxegoruntime_Runes2Raw"] = tardis.Go_haxegoruntime_Runes2Raw;
+$hxExpose(tardis.Go_haxegoruntime_Runes2Raw, "Go_haxegoruntime_Runes2Raw");
+tardis.Go_haxegoruntime_Runes2Raw.__name__ = ["tardis","Go_haxegoruntime_Runes2Raw"];
+tardis.Go_haxegoruntime_Runes2Raw.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_Runes2Raw.callFromHaxe = function(p_r) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_haxegoruntime_Runes2Raw(0,[],p_r).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_Runes2Raw.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_haxegoruntime_Runes2Raw(_gr,[],p_r).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_Runes2Raw.call = function(gr,_bds,p_r) {
+	return new tardis.Go_haxegoruntime_Runes2Raw(gr,_bds,p_r);
+}
+tardis.Go_haxegoruntime_Runes2Raw.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_Runes2Raw.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn8: function() {
+		var _t23;
+		var _t24;
+		var _t25;
+		var _t26;
+		this._latestPH = 169;
+		if(this._t21 < 0 || this._t21 >= this._t8.len()) tardis.Scheduler.ioor();
+		_t23 = this._t8.addr(this._t21);
+		if(this._t21 < 0 || this._t21 >= this._t6.len()) tardis.Scheduler.ioor();
+		_t24 = this._t6.addr(this._t21);
+		_t25 = _t24.ref() | 0;
+		_t26 = _t25;
+		_t23.store(_t26);
+		this._Next = 8;
+	}
+	,SubFn7: function() {
+		var _t22;
+		this._t21 = this._t20 + 1;
+		_t22 = this._t21 < this._t9;
+		this._Next = _t22?9:10;
+	}
+	,SubFn6: function() {
+		var _t18;
+		this._latestPH = 175;
+		_t18 = new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < 0) {
+					var _vi = _g++;
+					_v[_vi] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this)));
+		this._t19 = new tardis.Slice(_t18,0,-1);
+	}
+	,SubFn5: function() {
+		var _t14;
+		var _t15;
+		var _t16;
+		var _t17;
+		this._latestPH = 162;
+		if(this._t12 < 0 || this._t12 >= this._t4.len()) tardis.Scheduler.ioor();
+		_t14 = this._t4.addr(this._t12);
+		if(this._t12 < 0 || this._t12 >= this._t2.len()) tardis.Scheduler.ioor();
+		_t15 = this._t2.addr(this._t12);
+		_t16 = _t15.ref() | 0;
+		_t17 = _t16;
+		_t14.store(_t17);
+		this._Next = 4;
+	}
+	,SubFn4: function() {
+		var _t13;
+		this._t12 = this._t11 + 1;
+		_t13 = this._t12 < this._t5;
+		this._Next = _t13?5:6;
+	}
+	,SubFn3: function() {
+		var _t10;
+		_t10 = tardis.Force.uintCompare(this._t0,3) == 0;
+		this._Next = _t10?2:7;
+	}
+	,SubFn2: function() {
+		var _t7;
+		this._latestPH = 167;
+		_t7 = (function($this) {
+			var $r;
+			var _v = $this._t6;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._t8 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < _t7) {
+					var _i = _g++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,_t7);
+		this._t9 = (function($this) {
+			var $r;
+			var _v = $this._t6;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._Next = 8;
+	}
+	,SubFn1: function() {
+		var _t3;
+		this._latestPH = 160;
+		_t3 = (function($this) {
+			var $r;
+			var _v = $this._t2;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._t4 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < _t3) {
+					var _i = _g++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,_t3);
+		this._t5 = (function($this) {
+			var $r;
+			var _v = $this._t2;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._Next = 4;
+	}
+	,SubFn0: function() {
+		var _t1;
+		this._t0 = tardis.Go.haxegoruntime_ZiLen.ref() | 0;
+		_t1 = tardis.Force.uintCompare(this._t0,1) == 0;
+		this._Next = _t1?1:3;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 156;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 156;
+				this._latestBlock = 1;
+				this._latestPH = 159;
+				this._SF1 = new tardis.Go_haxegoruntime_RunesToUTF16(this._goroutine,[],this.p_r);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 159;
+				this._latestBlock = -1;
+				this._t2 = this._SF1.res();
+				this.SubFn1();
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 159;
+				this._latestBlock = 2;
+				this._latestPH = 166;
+				this._SF2 = new tardis.Go_haxegoruntime_RunesToUTF8(this._goroutine,[],this.p_r);
+				this._Next = -2;
+				return this;
+			case -2:
+				this._latestPH = 166;
+				this._latestBlock = -2;
+				this._t6 = this._SF2.res();
+				this.SubFn2();
+				this._Phi = 2;
+				break;
+			case 3:
+				this._latestPH = 166;
+				this._latestBlock = 3;
+				this.SubFn3();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 166;
+				this._latestBlock = 4;
+				this._t11 = this._Phi == 1?-1:this._Phi == 5?this._t12:0;
+				this.SubFn4();
+				this._Phi = 4;
+				break;
+			case 5:
+				this._latestPH = 166;
+				this._latestBlock = 5;
+				this.SubFn5();
+				this._Phi = 5;
+				break;
+			case 6:
+				this._latestPH = 166;
+				this._latestBlock = 6;
+				this._latestPH = 164;
+				this._res = this._t4;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 7:
+				this._latestPH = 164;
+				this._latestBlock = 7;
+				this.SubFn6();
+				this._latestPH = 175;
+				this._res = this._t19;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 8:
+				this._latestPH = 175;
+				this._latestBlock = 8;
+				this._t20 = this._Phi == 2?-1:this._Phi == 9?this._t21:0;
+				this.SubFn7();
+				this._Phi = 8;
+				break;
+			case 9:
+				this._latestPH = 175;
+				this._latestBlock = 9;
+				this.SubFn8();
+				this._Phi = 9;
+				break;
+			case 10:
+				this._latestPH = 175;
+				this._latestBlock = 10;
+				this._latestPH = 171;
+				this._res = this._t8;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_haxegoruntime_Runes2Raw
+});
+tardis._Go.Go_haxegoruntime_init = function(gr,_bds) {
+	this._Next = 0;
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,169,"Go_haxegoruntime_init");
+	this._bds = _bds;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis._Go.Go_haxegoruntime_init"] = tardis._Go.Go_haxegoruntime_init;
+tardis._Go.Go_haxegoruntime_init.__name__ = ["tardis","_Go","Go_haxegoruntime_init"];
+tardis._Go.Go_haxegoruntime_init.__interfaces__ = [tardis.StackFrame];
+tardis._Go.Go_haxegoruntime_init.callFromHaxe = function() {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis._Go.Go_haxegoruntime_init(0,[]).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+}
+tardis._Go.Go_haxegoruntime_init.callFromRT = function(_gr) {
+	var _sf = new tardis._Go.Go_haxegoruntime_init(_gr,[]).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+}
+tardis._Go.Go_haxegoruntime_init.call = function(gr,_bds) {
+	return new tardis._Go.Go_haxegoruntime_init(gr,_bds);
+}
+tardis._Go.Go_haxegoruntime_init.__super__ = tardis.StackFrameBasis;
+tardis._Go.Go_haxegoruntime_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn2: function() {
+		this._Next = 2;
+	}
+	,SubFn1: function() {
+		tardis.Go.haxegoruntime_init_36_guard.store(true);
+	}
+	,SubFn0: function() {
+		var _t0;
+		_t0 = tardis.Go.haxegoruntime_init_36_guard.ref();
+		this._Next = _t0?2:1;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 169;
+				this._latestBlock = 0;
+				this.SubFn0();
+				break;
+			case 1:
+				this._latestPH = 169;
+				this._latestBlock = 1;
+				tardis.Go.haxegoruntime_init_36_guard.store(true);
+				new tardis._Go.Go_utf16_init(this._goroutine,[]);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 169;
+				this._latestBlock = -1;
+				new tardis._Go.Go_utf8_init(this._goroutine,[]);
+				this._Next = -2;
+				return this;
+			case -2:
+				this._latestPH = 169;
+				this._latestBlock = -2;
+				new tardis._Go.Go_haxegoruntime_init_36_1(this._goroutine,[]);
+				this._Next = -3;
+				return this;
+			case -3:
+				this._latestPH = 169;
+				this._latestBlock = -3;
+				this._Next = 2;
+				break;
+			case 2:
+				this._latestPH = 169;
+				this._latestBlock = 2;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -16165,7 +13949,7 @@ tardis.Go_haxegoruntime_Goexit.prototype = $extend(tardis.StackFrameBasis.protot
 	,res: function() {
 		return null;
 	}
-	,__class__: tardis.Go_haxegoruntime_Goexit
+	,__class__: tardis._Go.Go_haxegoruntime_init
 });
 tardis.Go_main_MouseDown = function(gr,_bds,p_x,p_y) {
 	this._Next = 0;
@@ -16251,768 +14035,121 @@ tardis.Go_main_MouseDown.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	}
 	,__class__: tardis.Go_main_MouseDown
 });
-tardis.Go_utf8_DecodeRuneInString = function(gr,_bds,p_s) {
+tardis.Go_utf16_DecodeRune = function(gr,_bds,p_r1,p_r2) {
 	this._Next = 0;
-	this._t2 = 0;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,779,"Go_utf8_DecodeRuneInString");
-	this._bds = _bds;
-	this.p_s = p_s;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_DecodeRuneInString"] = tardis.Go_utf8_DecodeRuneInString;
-$hxExpose(tardis.Go_utf8_DecodeRuneInString, "Go_utf8_DecodeRuneInString");
-tardis.Go_utf8_DecodeRuneInString.__name__ = ["tardis","Go_utf8_DecodeRuneInString"];
-tardis.Go_utf8_DecodeRuneInString.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_DecodeRuneInString.callFromHaxe = function(p_s) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_DecodeRuneInString(0,[],p_s).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_DecodeRuneInString.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_utf8_DecodeRuneInString(_gr,[],p_s).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_DecodeRuneInString.call = function(gr,_bds,p_s) {
-	return new tardis.Go_utf8_DecodeRuneInString(gr,_bds,p_s);
-}
-tardis.Go_utf8_DecodeRuneInString.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_DecodeRuneInString.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t1 = this._t0.r0;
-		this._t2 = this._t0.r1;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 779;
-				this._latestBlock = 0;
-				this._latestPH = 780;
-				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInStringInternal(this._goroutine,[],this.p_s);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 780;
-				this._latestBlock = -1;
-				this._t0 = this._SF1.res();
-				this._t1 = this._t0.r0;
-				this._t2 = this._t0.r1;
-				this._latestPH = 781;
-				this._res = { r0 : this._t1, r1 : this._t2};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_DecodeRuneInString
-});
-tardis.Go_haxegoruntime_Runes2Raw = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t27 = 0;
-	this._t26 = 0;
-	this._t25 = null;
-	this._t24 = null;
-	this._t23 = false;
-	this._t22 = 0;
-	this._t21 = 0;
-	this._t20 = null;
-	this._t19 = null;
-	this._t17 = 0;
-	this._t16 = 0;
-	this._t15 = null;
-	this._t14 = null;
-	this._t13 = false;
-	this._t12 = 0;
-	this._t11 = 0;
-	this._t10 = false;
-	this._t9 = 0;
-	this._t8 = null;
-	this._t7 = 0;
-	this._t6 = null;
+	this._t8 = false;
+	this._t7 = false;
+	this._t6 = false;
 	this._t5 = 0;
-	this._t4 = null;
-	this._t3 = 0;
-	this._t2 = null;
-	this._t1 = false;
-	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,138,"Go_haxegoruntime_Runes2Raw");
-	this._bds = _bds;
-	this.p_r = p_r;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_Runes2Raw"] = tardis.Go_haxegoruntime_Runes2Raw;
-$hxExpose(tardis.Go_haxegoruntime_Runes2Raw, "Go_haxegoruntime_Runes2Raw");
-tardis.Go_haxegoruntime_Runes2Raw.__name__ = ["tardis","Go_haxegoruntime_Runes2Raw"];
-tardis.Go_haxegoruntime_Runes2Raw.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_Runes2Raw.callFromHaxe = function(p_r) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_Runes2Raw(0,[],p_r).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Runes2Raw.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_haxegoruntime_Runes2Raw(_gr,[],p_r).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Runes2Raw.call = function(gr,_bds,p_r) {
-	return new tardis.Go_haxegoruntime_Runes2Raw(gr,_bds,p_r);
-}
-tardis.Go_haxegoruntime_Runes2Raw.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_Runes2Raw.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn8: function() {
-		var _t24;
-		var _t25;
-		var _t26;
-		var _t27;
-		this._latestPH = 151;
-		if(this._t22 < 0 || this._t22 >= this._t8.len()) tardis.Scheduler.ioor();
-		_t24 = this._t8.addr(this._t22);
-		if(this._t22 < 0 || this._t22 >= this._t6.len()) tardis.Scheduler.ioor();
-		_t25 = this._t6.addr(this._t22);
-		_t26 = _t25.ref() | 0;
-		_t27 = _t26;
-		_t24.store(_t27);
-		this._Next = 8;
-	}
-	,SubFn7: function() {
-		var _t23;
-		this._t22 = this._t21 + 1;
-		_t23 = this._t22 < this._t9;
-		this._Next = _t23?9:10;
-	}
-	,SubFn6: function() {
-		var _t19;
-		this._latestPH = 158;
-		_t19 = new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < 0) {
-					var _vi = _g++;
-					_v[_vi] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this)));
-		this._t20 = new tardis.Slice(_t19,0,-1);
-	}
-	,SubFn5: function() {
-		var _t14;
-		var _t15;
-		var _t16;
-		var _t17;
-		this._latestPH = 144;
-		if(this._t12 < 0 || this._t12 >= this._t4.len()) tardis.Scheduler.ioor();
-		_t14 = this._t4.addr(this._t12);
-		if(this._t12 < 0 || this._t12 >= this._t2.len()) tardis.Scheduler.ioor();
-		_t15 = this._t2.addr(this._t12);
-		_t16 = _t15.ref() | 0;
-		_t17 = _t16;
-		_t14.store(_t17);
-		this._Next = 4;
-	}
-	,SubFn4: function() {
-		var _t13;
-		this._t12 = this._t11 + 1;
-		_t13 = this._t12 < this._t5;
-		this._Next = _t13?5:6;
-	}
-	,SubFn3: function() {
-		var _t10;
-		_t10 = tardis.Force.uintCompare(this._t0,3) == 0;
-		this._Next = _t10?2:7;
-	}
-	,SubFn2: function() {
-		var _t7;
-		this._latestPH = 149;
-		_t7 = (function($this) {
-			var $r;
-			var _v = $this._t6;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._t8 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < _t7) {
-					var _i = _g++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,_t7);
-		this._t9 = (function($this) {
-			var $r;
-			var _v = $this._t6;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._Next = 8;
-	}
-	,SubFn1: function() {
-		var _t3;
-		this._latestPH = 142;
-		_t3 = (function($this) {
-			var $r;
-			var _v = $this._t2;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._t4 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < _t3) {
-					var _i = _g++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,_t3);
-		this._t5 = (function($this) {
-			var $r;
-			var _v = $this._t2;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._Next = 4;
-	}
-	,SubFn0: function() {
-		var _t1;
-		this._t0 = tardis.Go.haxegoruntime_ZiLen.ref() | 0;
-		_t1 = tardis.Force.uintCompare(this._t0,1) == 0;
-		this._Next = _t1?1:3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 138;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 138;
-				this._latestBlock = 1;
-				this._latestPH = 141;
-				this._SF1 = new tardis.Go_haxegoruntime_RunesToUTF16(this._goroutine,[],this.p_r);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 141;
-				this._latestBlock = -1;
-				this._t2 = this._SF1.res();
-				this.SubFn1();
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 141;
-				this._latestBlock = 2;
-				this._latestPH = 148;
-				this._SF2 = new tardis.Go_haxegoruntime_RunesToUTF8(this._goroutine,[],this.p_r);
-				this._Next = -2;
-				return this;
-			case -2:
-				this._latestPH = 148;
-				this._latestBlock = -2;
-				this._t6 = this._SF2.res();
-				this.SubFn2();
-				this._Phi = 2;
-				break;
-			case 3:
-				this._latestPH = 148;
-				this._latestBlock = 3;
-				this.SubFn3();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 148;
-				this._latestBlock = 4;
-				this._t11 = this._Phi == 1?-1:this._Phi == 5?this._t12:0;
-				this.SubFn4();
-				this._Phi = 4;
-				break;
-			case 5:
-				this._latestPH = 148;
-				this._latestBlock = 5;
-				this.SubFn5();
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 148;
-				this._latestBlock = 6;
-				this._latestPH = 146;
-				this._res = this._t4;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 7:
-				this._latestPH = 146;
-				this._latestBlock = 7;
-				this._latestPH = 156;
-				throw "goruntime.Runes2Raw() unrecognised encoding";
-				this.SubFn6();
-				this._latestPH = 158;
-				this._res = this._t20;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 8:
-				this._latestPH = 158;
-				this._latestBlock = 8;
-				this._t21 = this._Phi == 2?-1:this._Phi == 9?this._t22:0;
-				this.SubFn7();
-				this._Phi = 8;
-				break;
-			case 9:
-				this._latestPH = 158;
-				this._latestBlock = 9;
-				this.SubFn8();
-				this._Phi = 9;
-				break;
-			case 10:
-				this._latestPH = 158;
-				this._latestBlock = 10;
-				this._latestPH = 153;
-				this._res = this._t8;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_Runes2Raw
-});
-tardis.Go_utf8_ValidRune = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t4 = false;
-	this._t3 = false;
-	this._t2 = false;
-	this._t1 = false;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,983,"Go_utf8_ValidRune");
-	this._bds = _bds;
-	this.p_r = p_r;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_ValidRune"] = tardis.Go_utf8_ValidRune;
-$hxExpose(tardis.Go_utf8_ValidRune, "Go_utf8_ValidRune");
-tardis.Go_utf8_ValidRune.__name__ = ["tardis","Go_utf8_ValidRune"];
-tardis.Go_utf8_ValidRune.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_ValidRune.callFromHaxe = function(p_r) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_ValidRune(0,[],p_r).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_ValidRune.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_utf8_ValidRune(_gr,[],p_r).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_ValidRune.call = function(gr,_bds,p_r) {
-	return new tardis.Go_utf8_ValidRune(gr,_bds,p_r);
-}
-tardis.Go_utf8_ValidRune.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_ValidRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn4: function() {
-		this._Next = this._t4?2:5;
-	}
-	,SubFn3: function() {
-		this._latestPH = 987;
-		this._t3 = this.p_r <= 57343;
-		this._Next = 7;
-	}
-	,SubFn2: function() {
-		var _t2;
-		this._latestPH = 989;
-		_t2 = this.p_r > 1114111;
-		this._Next = _t2?4:8;
-	}
-	,SubFn1: function() {
-		var _t1;
-		this._latestPH = 987;
-		_t1 = 55296 <= this.p_r;
-		this._Next = _t1?6:7;
-	}
-	,SubFn0: function() {
-		var _t0;
-		this._latestPH = 985;
-		_t0 = this.p_r < 0;
-		this._Next = _t0?1:3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 983;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Phi = 0;
-				break;
-			case 1:
-				this._latestPH = 983;
-				this._latestBlock = 1;
-				this._latestPH = 986;
-				this._res = false;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 2:
-				this._latestPH = 986;
-				this._latestBlock = 2;
-				this._latestPH = 988;
-				this._res = false;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 988;
-				this._latestBlock = 3;
-				this.SubFn1();
-				this._Phi = 3;
-				break;
-			case 4:
-				this._latestPH = 988;
-				this._latestBlock = 4;
-				this._latestPH = 990;
-				this._res = false;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 5:
-				this._latestPH = 990;
-				this._latestBlock = 5;
-				this.SubFn2();
-				this._Phi = 5;
-				break;
-			case 6:
-				this._latestPH = 990;
-				this._latestBlock = 6;
-				this._latestPH = 987;
-				this._t3 = this.p_r <= 57343;
-				this._Next = 7;
-				this._Phi = 6;
-				break;
-			case 7:
-				this._latestPH = 990;
-				this._latestBlock = 7;
-				this._latestPH = 987;
-				this._t4 = this._Phi == 3?false:this._Phi == 6?this._t3:false;
-				this._Next = this._t4?2:5;
-				this._Phi = 7;
-				break;
-			case 8:
-				this._latestPH = 987;
-				this._latestBlock = 8;
-				this._latestPH = 992;
-				this._res = true;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_ValidRune
-});
-tardis.Go_utf8_FullRuneInString = function(gr,_bds,p_s) {
-	this._Next = 0;
-	this._t4 = false;
-	this._t3 = false;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,759,"Go_utf8_FullRuneInString");
-	this._bds = _bds;
-	this.p_s = p_s;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_utf8_FullRuneInString"] = tardis.Go_utf8_FullRuneInString;
-$hxExpose(tardis.Go_utf8_FullRuneInString, "Go_utf8_FullRuneInString");
-tardis.Go_utf8_FullRuneInString.__name__ = ["tardis","Go_utf8_FullRuneInString"];
-tardis.Go_utf8_FullRuneInString.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_FullRuneInString.callFromHaxe = function(p_s) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_FullRuneInString(0,[],p_s).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_utf8_FullRuneInString.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_utf8_FullRuneInString(_gr,[],p_s).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_utf8_FullRuneInString.call = function(gr,_bds,p_s) {
-	return new tardis.Go_utf8_FullRuneInString(gr,_bds,p_s);
-}
-tardis.Go_utf8_FullRuneInString.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_FullRuneInString.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t3 = this._t0.r2;
-		this._t4 = !this._t3;
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 759;
-				this._latestBlock = 0;
-				this._latestPH = 760;
-				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInStringInternal(this._goroutine,[],this.p_s);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 760;
-				this._latestBlock = -1;
-				this._t0 = this._SF1.res();
-				this._t3 = this._t0.r2;
-				this._t4 = !this._t3;
-				this._latestPH = 761;
-				this._res = this._t4;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf8_FullRuneInString
-});
-tardis.Go_haxegoruntime_RunesToUTF8 = function(gr,_bds,p_r) {
-	this._Next = 0;
-	this._Phi = 0;
-	this._t13 = null;
-	this._t11 = 0;
-	this._t10 = null;
-	this._t9 = null;
-	this._t8 = 0;
-	this._t7 = 0;
-	this._t6 = null;
-	this._t5 = false;
 	this._t4 = 0;
 	this._t3 = 0;
-	this._t2 = null;
+	this._t2 = 0;
 	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,126,"Go_haxegoruntime_RunesToUTF8");
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,243,"Go_utf16_DecodeRune");
 	this._bds = _bds;
-	this.p_r = p_r;
+	this.p_r1 = p_r1;
+	this.p_r2 = p_r2;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_haxegoruntime_RunesToUTF8"] = tardis.Go_haxegoruntime_RunesToUTF8;
-$hxExpose(tardis.Go_haxegoruntime_RunesToUTF8, "Go_haxegoruntime_RunesToUTF8");
-tardis.Go_haxegoruntime_RunesToUTF8.__name__ = ["tardis","Go_haxegoruntime_RunesToUTF8"];
-tardis.Go_haxegoruntime_RunesToUTF8.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_RunesToUTF8.callFromHaxe = function(p_r) {
+$hxClasses["tardis.Go_utf16_DecodeRune"] = tardis.Go_utf16_DecodeRune;
+$hxExpose(tardis.Go_utf16_DecodeRune, "Go_utf16_DecodeRune");
+tardis.Go_utf16_DecodeRune.__name__ = ["tardis","Go_utf16_DecodeRune"];
+tardis.Go_utf16_DecodeRune.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf16_DecodeRune.callFromHaxe = function(p_r1,p_r2) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_RunesToUTF8(0,[],p_r).run();
+	var _sf = new tardis.Go_utf16_DecodeRune(0,[],p_r1,p_r2).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_RunesToUTF8.callFromRT = function(_gr,p_r) {
-	var _sf = new tardis.Go_haxegoruntime_RunesToUTF8(_gr,[],p_r).run();
+tardis.Go_utf16_DecodeRune.callFromRT = function(_gr,p_r1,p_r2) {
+	var _sf = new tardis.Go_utf16_DecodeRune(_gr,[],p_r1,p_r2).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_haxegoruntime_RunesToUTF8.call = function(gr,_bds,p_r) {
-	return new tardis.Go_haxegoruntime_RunesToUTF8(gr,_bds,p_r);
+tardis.Go_utf16_DecodeRune.call = function(gr,_bds,p_r1,p_r2) {
+	return new tardis.Go_utf16_DecodeRune(gr,_bds,p_r1,p_r2);
 }
-tardis.Go_haxegoruntime_RunesToUTF8.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_RunesToUTF8.prototype = $extend(tardis.StackFrameBasis.prototype,{
+tardis.Go_utf16_DecodeRune.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf16_DecodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	SubFn4: function() {
-		this._latestPH = 132;
-		this._t13 = (function($this) {
-			var $r;
-			var _v;
-			if($this._t2 == null) _v = $this._t9; else if($this._t2.len() == 0) _v = $this._t9; else if($this._t9 == null) _v = $this._t2; else if($this._t9.len() == 0) _v = $this._t2; else {
-				var l0 = $this._t2.len();
-				_v = new tardis.Slice(new tardis.Pointer((function($this) {
-					var $r;
-					var _v1 = new Array();
-					{
-						var _g1 = 0, _g = $this._t2.len() + $this._t9.len();
-						while(_g1 < _g) {
-							var _i = _g1++;
-							_v1[_i] = 0;
-						}
-					}
-					$r = _v1;
-					return $r;
-				}($this))),0,$this._t2.len() + $this._t9.len());
-				var _g = 0;
-				while(_g < l0) {
-					var _i = _g++;
-					_v.setAt(_i,tardis.Deep.copy($this._t2.getAt(_i)));
-				}
-				var _g1 = 0, _g = $this._t9.len();
-				while(_g1 < _g) {
-					var _i = _g1++;
-					_v.setAt(_i + l0,tardis.Deep.copy($this._t9.getAt(_i)));
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this));
-		this._Next = 1;
+		var _t8;
+		_t8 = this.p_r1 < 56320;
+		this._Next = _t8?4:2;
 	}
 	,SubFn3: function() {
-		var _t10;
-		this._t9 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g1 = 0, _g = $this._t8;
-				while(_g1 < _g) {
-					var _i = _g1++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,this._t8);
-		this._latestPH = 131;
-		if(this._t4 < 0 || this._t4 >= this.p_r.len()) tardis.Scheduler.ioor();
-		_t10 = this.p_r.addr(this._t4);
-		this._t11 = _t10.ref() | 0;
+		var _t7;
+		_t7 = 56320 <= this.p_r2;
+		this._Next = _t7?3:2;
 	}
 	,SubFn2: function() {
 		var _t6;
-		this._latestPH = 130;
-		if(this._t4 < 0 || this._t4 >= this.p_r.len()) tardis.Scheduler.ioor();
-		_t6 = this.p_r.addr(this._t4);
-		this._t7 = _t6.ref() | 0;
+		this._latestPH = 244;
+		_t6 = this.p_r2 < 57344;
+		this._Next = _t6?1:2;
 	}
 	,SubFn1: function() {
-		var _t5;
-		this._t4 = this._t3 + 1;
-		_t5 = this._t4 < this._t1;
-		this._Next = _t5?2:3;
+		var _t1;
+		var _t2;
+		var _t3;
+		var _t4;
+		this._latestPH = 245;
+		_t1 = tardis.Force.toInt32(this.p_r1 - 55296);
+		_t2 = _t1 << tardis.Int64.getLow(new tardis.Int64(0,10));
+		_t3 = tardis.Force.toInt32(this.p_r2 - 56320);
+		_t4 = tardis.Force.toInt32(_t2 | _t3);
+		this._t5 = tardis.Force.toInt32(_t4 + 65536);
 	}
 	,SubFn0: function() {
-		this._latestPH = 128;
-		this._t0 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < 0) {
-					var _i = _g++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,0);
-		this._t1 = (function($this) {
-			var $r;
-			var _v = $this.p_r;
-			$r = _v == null?0:_v.end - _v.start;
-			return $r;
-		}(this));
-		this._Next = 1;
+		var _t0;
+		this._latestPH = 244;
+		_t0 = 55296 <= this.p_r1;
+		this._Next = _t0?5:2;
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 126;
+				this._latestPH = 243;
 				this._latestBlock = 0;
 				this.SubFn0();
-				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 126;
+				this._latestPH = 243;
 				this._latestBlock = 1;
-				this._latestPH = 127;
-				this._t2 = this._Phi == 0?this._t0:this._Phi == 2?this._t13:new tardis.Slice(new tardis.Pointer(new Array()),0,0);
-				this._t3 = this._Phi == 0?-1:this._Phi == 2?this._t4:0;
 				this.SubFn1();
-				this._Phi = 1;
-				break;
-			case 2:
-				this._latestPH = 127;
-				this._latestBlock = 2;
-				this.SubFn2();
-				this._latestPH = 130;
-				this._SF1 = new tardis.Go_utf8_RuneLen(this._goroutine,[],this._t7);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 130;
-				this._latestBlock = -1;
-				this._t8 = this._SF1.res();
-				this.SubFn3();
-				this._latestPH = 131;
-				new tardis.Go_utf8_EncodeRune(this._goroutine,[],this._t9,this._t11);
-				this._Next = -2;
-				return this;
-			case -2:
-				this._latestPH = 131;
-				this._latestBlock = -2;
-				this.SubFn4();
-				this._Phi = 2;
-				break;
-			case 3:
-				this._latestPH = 131;
-				this._latestBlock = 3;
-				this._latestPH = 134;
-				this._res = this._t2;
+				this._latestPH = 245;
+				this._res = this._t5;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
+			case 2:
+				this._latestPH = 245;
+				this._latestBlock = 2;
+				this._latestPH = 247;
+				this._res = 65533;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 3:
+				this._latestPH = 247;
+				this._latestBlock = 3;
+				this.SubFn2();
+				break;
+			case 4:
+				this._latestPH = 247;
+				this._latestBlock = 4;
+				this.SubFn3();
+				break;
+			case 5:
+				this._latestPH = 247;
+				this._latestBlock = 5;
+				this.SubFn4();
+				break;
 			default:
 				tardis.Scheduler.bbi();
 			}
@@ -17021,7 +14158,7 @@ tardis.Go_haxegoruntime_RunesToUTF8.prototype = $extend(tardis.StackFrameBasis.p
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_haxegoruntime_RunesToUTF8
+	,__class__: tardis.Go_utf16_DecodeRune
 });
 tardis.Go_utf8_DecodeLastRuneInString = function(gr,_bds,p_s) {
 	this._Next = 0;
@@ -17049,7 +14186,7 @@ tardis.Go_utf8_DecodeLastRuneInString = function(gr,_bds,p_s) {
 	this._t2 = 0;
 	this._t1 = false;
 	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,826,"Go_utf8_DecodeLastRuneInString");
+	tardis.StackFrameBasis.call(this,gr,590,"Go_utf8_DecodeLastRuneInString");
 	this._bds = _bds;
 	this.p_s = p_s;
 	tardis.Scheduler.push(gr,this);
@@ -17082,13 +14219,13 @@ tardis.Go_utf8_DecodeLastRuneInString.prototype = $extend(tardis.StackFrameBasis
 		var _t22;
 		this._t19 = this._t18.r0;
 		this._t20 = this._t18.r1;
-		this._latestPH = 852;
+		this._latestPH = 616;
 		_t21 = this._t16 + this._t20;
 		_t22 = _t21 != this._t0;
 		this._Next = _t22?13:14;
 	}
 	,SubFn11: function() {
-		this._latestPH = 851;
+		this._latestPH = 615;
 		this._t17 = tardis.Force.toRawString(this._goroutine,tardis.Force.toUTF8slice(this._goroutine,this.p_s).subSlice(this._t16,this._t0));
 	}
 	,SubFn10: function() {
@@ -17100,13 +14237,13 @@ tardis.Go_utf8_DecodeLastRuneInString.prototype = $extend(tardis.StackFrameBasis
 	}
 	,SubFn8: function() {
 		var _t14;
-		this._latestPH = 843;
+		this._latestPH = 607;
 		_t14 = this._t13 >= this._t8;
 		this._Next = _t14?7:8;
 	}
 	,SubFn7: function() {
 		var _t12;
-		this._latestPH = 848;
+		this._latestPH = 612;
 		_t12 = this._t13 < 0;
 		this._Next = _t12?11:12;
 	}
@@ -17114,7 +14251,7 @@ tardis.Go_utf8_DecodeLastRuneInString.prototype = $extend(tardis.StackFrameBasis
 		this._Next = this._t11?8:10;
 	}
 	,SubFn5: function() {
-		this._latestPH = 844;
+		this._latestPH = 608;
 		this._t10 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(this._t13);
 	}
 	,SubFn4: function() {
@@ -17126,29 +14263,29 @@ tardis.Go_utf8_DecodeLastRuneInString.prototype = $extend(tardis.StackFrameBasis
 	}
 	,SubFn2: function() {
 		var _t7;
-		this._latestPH = 839;
+		this._latestPH = 603;
 		this._t6 = this._t0 - 4;
-		this._latestPH = 840;
+		this._latestPH = 604;
 		_t7 = this._t6 < 0;
 		this._Next = _t7?5:6;
 	}
 	,SubFn1: function() {
 		var _t3;
 		var _t5;
-		this._latestPH = 831;
+		this._latestPH = 595;
 		this._t2 = this._t0 - 1;
-		this._latestPH = 832;
+		this._latestPH = 596;
 		_t3 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(this._t2);
 		this._t4 = _t3;
-		this._latestPH = 833;
+		this._latestPH = 597;
 		_t5 = this._t4 < 128;
 		this._Next = _t5?3:4;
 	}
 	,SubFn0: function() {
 		var _t1;
-		this._latestPH = 827;
+		this._latestPH = 591;
 		this._t0 = tardis.Force.toUTF8length(this._goroutine,this.p_s);
-		this._latestPH = 828;
+		this._latestPH = 592;
 		_t1 = this._t0 == 0;
 		this._Next = _t1?1:2;
 	}
@@ -17157,126 +14294,126 @@ tardis.Go_utf8_DecodeLastRuneInString.prototype = $extend(tardis.StackFrameBasis
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 826;
+				this._latestPH = 590;
 				this._latestBlock = 0;
 				this.SubFn0();
 				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 826;
+				this._latestPH = 590;
 				this._latestBlock = 1;
-				this._latestPH = 829;
+				this._latestPH = 593;
 				this._res = { r0 : 65533, r1 : 0};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 2:
-				this._latestPH = 829;
+				this._latestPH = 593;
 				this._latestBlock = 2;
 				this.SubFn1();
 				this._Phi = 2;
 				break;
 			case 3:
-				this._latestPH = 829;
+				this._latestPH = 593;
 				this._latestBlock = 3;
-				this._latestPH = 834;
+				this._latestPH = 598;
 				this._res = { r0 : this._t4, r1 : 1};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 4:
-				this._latestPH = 834;
+				this._latestPH = 598;
 				this._latestBlock = 4;
 				this.SubFn2();
 				this._Phi = 4;
 				break;
 			case 5:
-				this._latestPH = 834;
+				this._latestPH = 598;
 				this._latestBlock = 5;
 				this._Next = 6;
 				this._Phi = 5;
 				break;
 			case 6:
-				this._latestPH = 834;
+				this._latestPH = 598;
 				this._latestBlock = 6;
-				this._latestPH = 839;
+				this._latestPH = 603;
 				this._t8 = this._Phi == 4?this._t6:this._Phi == 5?0:0;
 				this._t9 = this._t2 - 1;
 				this._Next = 9;
 				this._Phi = 6;
 				break;
 			case 7:
-				this._latestPH = 839;
+				this._latestPH = 603;
 				this._latestBlock = 7;
-				this._latestPH = 844;
+				this._latestPH = 608;
 				this._t10 = tardis.Force.toUTF8slice(this._goroutine,this.p_s).getAt(this._t13);
-				this._latestPH = 844;
+				this._latestPH = 608;
 				this._SF1 = new tardis.Go_utf8_RuneStart(this._goroutine,[],this._t10);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 844;
+				this._latestPH = 608;
 				this._latestBlock = -1;
 				this._t11 = this._SF1.res();
 				this._Next = this._t11?8:10;
 				this._Phi = 7;
 				break;
 			case 8:
-				this._latestPH = 844;
+				this._latestPH = 608;
 				this._latestBlock = 8;
 				this.SubFn7();
 				this._Phi = 8;
 				break;
 			case 9:
-				this._latestPH = 844;
+				this._latestPH = 608;
 				this._latestBlock = 9;
-				this._latestPH = 831;
+				this._latestPH = 595;
 				this._t13 = this._Phi == 6?this._t9:this._Phi == 10?this._t15:0;
 				this.SubFn8();
 				this._Phi = 9;
 				break;
 			case 10:
-				this._latestPH = 831;
+				this._latestPH = 595;
 				this._latestBlock = 10;
 				this._t15 = this._t13 - 1;
 				this._Next = 9;
 				this._Phi = 10;
 				break;
 			case 11:
-				this._latestPH = 831;
+				this._latestPH = 595;
 				this._latestBlock = 11;
 				this._Next = 12;
 				this._Phi = 11;
 				break;
 			case 12:
-				this._latestPH = 831;
+				this._latestPH = 595;
 				this._latestBlock = 12;
 				this._t16 = this._Phi == 8?this._t13:this._Phi == 11?0:0;
-				this._latestPH = 851;
+				this._latestPH = 615;
 				this._t17 = tardis.Force.toRawString(this._goroutine,tardis.Force.toUTF8slice(this._goroutine,this.p_s).subSlice(this._t16,this._t0));
-				this._latestPH = 851;
+				this._latestPH = 615;
 				this._SF2 = new tardis.Go_utf8_DecodeRuneInString(this._goroutine,[],this._t17);
 				this._Next = -2;
 				return this;
 			case -2:
-				this._latestPH = 851;
+				this._latestPH = 615;
 				this._latestBlock = -2;
 				this._t18 = this._SF2.res();
 				this.SubFn12();
 				this._Phi = 12;
 				break;
 			case 13:
-				this._latestPH = 851;
+				this._latestPH = 615;
 				this._latestBlock = 13;
-				this._latestPH = 853;
+				this._latestPH = 617;
 				this._res = { r0 : 65533, r1 : 1};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 14:
-				this._latestPH = 853;
+				this._latestPH = 617;
 				this._latestBlock = 14;
-				this._latestPH = 855;
+				this._latestPH = 619;
 				this._res = { r0 : this._t19, r1 : this._t20};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
@@ -17291,43 +14428,52 @@ tardis.Go_utf8_DecodeLastRuneInString.prototype = $extend(tardis.StackFrameBasis
 	}
 	,__class__: tardis.Go_utf8_DecodeLastRuneInString
 });
-tardis.Go_hxutil_Platform = function(gr,_bds) {
+tardis.Go_utf8_RuneStart = function(gr,_bds,p_b) {
 	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,1010,"Go_hxutil_Platform");
+	this._t1 = false;
+	this._t0 = 0;
+	tardis.StackFrameBasis.call(this,gr,706,"Go_utf8_RuneStart");
 	this._bds = _bds;
+	this.p_b = p_b;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_hxutil_Platform"] = tardis.Go_hxutil_Platform;
-$hxExpose(tardis.Go_hxutil_Platform, "Go_hxutil_Platform");
-tardis.Go_hxutil_Platform.__name__ = ["tardis","Go_hxutil_Platform"];
-tardis.Go_hxutil_Platform.__interfaces__ = [tardis.StackFrame];
-tardis.Go_hxutil_Platform.callFromHaxe = function() {
+$hxClasses["tardis.Go_utf8_RuneStart"] = tardis.Go_utf8_RuneStart;
+$hxExpose(tardis.Go_utf8_RuneStart, "Go_utf8_RuneStart");
+tardis.Go_utf8_RuneStart.__name__ = ["tardis","Go_utf8_RuneStart"];
+tardis.Go_utf8_RuneStart.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_RuneStart.callFromHaxe = function(p_b) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_hxutil_Platform(0,[]).run();
+	var _sf = new tardis.Go_utf8_RuneStart(0,[],p_b).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_hxutil_Platform.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_hxutil_Platform(_gr,[]).run();
+tardis.Go_utf8_RuneStart.callFromRT = function(_gr,p_b) {
+	var _sf = new tardis.Go_utf8_RuneStart(_gr,[],p_b).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_hxutil_Platform.call = function(gr,_bds) {
-	return new tardis.Go_hxutil_Platform(gr,_bds);
+tardis.Go_utf8_RuneStart.call = function(gr,_bds,p_b) {
+	return new tardis.Go_utf8_RuneStart(gr,_bds,p_b);
 }
-tardis.Go_hxutil_Platform.__super__ = tardis.StackFrameBasis;
-tardis.Go_hxutil_Platform.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	run: function() {
+tardis.Go_utf8_RuneStart.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_RuneStart.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		var _t0;
+		_t0 = this.p_b & 192 & 255;
+		this._t1 = tardis.Force.uintCompare(_t0,128) != 0;
+	}
+	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 1010;
+				this._latestPH = 706;
 				this._latestBlock = 0;
-				this._res = "go";
+				this.SubFn0();
+				this._res = this._t1;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -17339,196 +14485,560 @@ tardis.Go_hxutil_Platform.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_hxutil_Platform
+	,__class__: tardis.Go_utf8_RuneStart
 });
-tardis.Go_utf8_DecodeRune = function(gr,_bds,p_p) {
+tardis._Go.Go_utf8_decodeRuneInternal = function(gr,_bds,p_p) {
 	this._Next = 0;
-	this._t2 = 0;
-	this._t1 = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,769,"Go_utf8_DecodeRune");
+	this._t60 = false;
+	this._t59 = false;
+	this._t58 = 0;
+	this._t57 = 0;
+	this._t56 = 0;
+	this._t55 = 0;
+	this._t54 = 0;
+	this._t53 = 0;
+	this._t52 = 0;
+	this._t51 = 0;
+	this._t50 = 0;
+	this._t49 = 0;
+	this._t48 = 0;
+	this._t47 = 0;
+	this._t46 = 0;
+	this._t45 = 0;
+	this._t44 = false;
+	this._t43 = false;
+	this._t42 = false;
+	this._t41 = 0;
+	this._t40 = null;
+	this._t39 = false;
+	this._t38 = false;
+	this._t37 = false;
+	this._t36 = false;
+	this._t35 = 0;
+	this._t34 = 0;
+	this._t33 = 0;
+	this._t32 = 0;
+	this._t31 = 0;
+	this._t30 = 0;
+	this._t29 = 0;
+	this._t28 = 0;
+	this._t27 = 0;
+	this._t26 = 0;
+	this._t25 = false;
+	this._t24 = false;
+	this._t23 = false;
+	this._t22 = 0;
+	this._t21 = null;
+	this._t20 = false;
+	this._t19 = false;
+	this._t18 = 0;
+	this._t17 = 0;
+	this._t16 = 0;
+	this._t15 = 0;
+	this._t14 = 0;
+	this._t13 = 0;
+	this._t12 = false;
+	this._t11 = false;
+	this._t10 = false;
+	this._t9 = 0;
+	this._t8 = null;
+	this._t7 = false;
+	this._t6 = false;
+	this._t5 = 0;
+	this._t4 = false;
+	this._t3 = 0;
+	this._t2 = null;
+	this._t1 = false;
+	this._t0 = 0;
+	tardis.StackFrameBasis.call(this,gr,359,"Go_utf8_decodeRuneInternal");
 	this._bds = _bds;
 	this.p_p = p_p;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_utf8_DecodeRune"] = tardis.Go_utf8_DecodeRune;
-$hxExpose(tardis.Go_utf8_DecodeRune, "Go_utf8_DecodeRune");
-tardis.Go_utf8_DecodeRune.__name__ = ["tardis","Go_utf8_DecodeRune"];
-tardis.Go_utf8_DecodeRune.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_DecodeRune.callFromHaxe = function(p_p) {
+$hxClasses["tardis._Go.Go_utf8_decodeRuneInternal"] = tardis._Go.Go_utf8_decodeRuneInternal;
+tardis._Go.Go_utf8_decodeRuneInternal.__name__ = ["tardis","_Go","Go_utf8_decodeRuneInternal"];
+tardis._Go.Go_utf8_decodeRuneInternal.__interfaces__ = [tardis.StackFrame];
+tardis._Go.Go_utf8_decodeRuneInternal.callFromHaxe = function(p_p) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_DecodeRune(0,[],p_p).run();
+	var _sf = new tardis._Go.Go_utf8_decodeRuneInternal(0,[],p_p).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_utf8_DecodeRune.callFromRT = function(_gr,p_p) {
-	var _sf = new tardis.Go_utf8_DecodeRune(_gr,[],p_p).run();
+tardis._Go.Go_utf8_decodeRuneInternal.callFromRT = function(_gr,p_p) {
+	var _sf = new tardis._Go.Go_utf8_decodeRuneInternal(_gr,[],p_p).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_utf8_DecodeRune.call = function(gr,_bds,p_p) {
-	return new tardis.Go_utf8_DecodeRune(gr,_bds,p_p);
+tardis._Go.Go_utf8_decodeRuneInternal.call = function(gr,_bds,p_p) {
+	return new tardis._Go.Go_utf8_decodeRuneInternal(gr,_bds,p_p);
 }
-tardis.Go_utf8_DecodeRune.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_DecodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t1 = this._t0.r0;
-		this._t2 = this._t0.r1;
+tardis._Go.Go_utf8_decodeRuneInternal.__super__ = tardis.StackFrameBasis;
+tardis._Go.Go_utf8_decodeRuneInternal.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn21: function() {
+		var _t60;
+		_t60 = 1114111 < this._t58;
+		this._Next = _t60?35:36;
 	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 769;
-				this._latestBlock = 0;
-				this._latestPH = 770;
-				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInternal(this._goroutine,[],this.p_p);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 770;
-				this._latestBlock = -1;
-				this._t0 = this._SF1.res();
-				this._t1 = this._t0.r0;
-				this._t2 = this._t0.r1;
-				this._latestPH = 771;
-				this._res = { r0 : this._t1, r1 : this._t2};
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
+	,SubFn20: function() {
+		var _t45;
+		var _t46;
+		var _t47;
+		var _t48;
+		var _t49;
+		var _t50;
+		var _t51;
+		var _t52;
+		var _t53;
+		var _t54;
+		var _t55;
+		var _t56;
+		var _t57;
+		var _t59;
+		this._latestPH = 426;
+		_t45 = this._t3 & 7 & 255;
+		_t46 = _t45;
+		_t47 = _t46 << tardis.Int64.getLow(new tardis.Int64(0,18));
+		_t48 = this._t9 & 63 & 255;
+		_t49 = _t48;
+		_t50 = _t49 << tardis.Int64.getLow(new tardis.Int64(0,12));
+		_t51 = tardis.Force.toInt32(_t47 | _t50);
+		_t52 = this._t22 & 63 & 255;
+		_t53 = _t52;
+		_t54 = _t53 << tardis.Int64.getLow(new tardis.Int64(0,6));
+		_t55 = tardis.Force.toInt32(_t51 | _t54);
+		_t56 = this._t41 & 63 & 255;
+		_t57 = _t56;
+		this._t58 = tardis.Force.toInt32(_t55 | _t57);
+		this._latestPH = 427;
+		_t59 = this._t58 <= 65535;
+		this._Next = _t59?35:37;
 	}
-	,res: function() {
-		return this._res;
+	,SubFn19: function() {
+		var _t44;
+		this._latestPH = 420;
+		_t44 = tardis.Force.uintCompare(192,this._t41) <= 0;
+		this._Next = _t44?30:31;
 	}
-	,__class__: tardis.Go_utf8_DecodeRune
-});
-tardis._Go.Go_hxutil_init = function(gr,_bds) {
-	this._Next = 0;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,771,"Go_hxutil_init");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_hxutil_init"] = tardis._Go.Go_hxutil_init;
-tardis._Go.Go_hxutil_init.__name__ = ["tardis","_Go","Go_hxutil_init"];
-tardis._Go.Go_hxutil_init.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_hxutil_init.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_hxutil_init(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis._Go.Go_hxutil_init.callFromRT = function(_gr) {
-	var _sf = new tardis._Go.Go_hxutil_init(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
+	,SubFn18: function() {
+		var _t43;
+		this._latestPH = 425;
+		_t43 = tardis.Force.uintCompare(this._t3,248) < 0;
+		this._Next = _t43?33:34;
 	}
-}
-tardis._Go.Go_hxutil_init.call = function(gr,_bds) {
-	return new tardis._Go.Go_hxutil_init(gr,_bds);
-}
-tardis._Go.Go_hxutil_init.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_hxutil_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn1: function() {
-		tardis.Go.hxutil_init_36_guard.store(true);
-		this._Next = 2;
+	,SubFn17: function() {
+		var _t40;
+		var _t42;
+		this._latestPH = 419;
+		if(3 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t40 = this.p_p.addr(3);
+		this._t41 = _t40.ref() | 0;
+		this._latestPH = 420;
+		_t42 = tardis.Force.uintCompare(this._t41,128) < 0;
+		this._Next = _t42?30:32;
+	}
+	,SubFn16: function() {
+		var _t39;
+		_t39 = this._t35 <= 57343;
+		this._Next = _t39?25:26;
+	}
+	,SubFn15: function() {
+		var _t38;
+		this._latestPH = 409;
+		_t38 = 55296 <= this._t35;
+		this._Next = _t38?27:26;
+	}
+	,SubFn14: function() {
+		var _t37;
+		this._latestPH = 416;
+		_t37 = this._t0 < 4;
+		this._Next = _t37?28:29;
+	}
+	,SubFn13: function() {
+		var _t26;
+		var _t27;
+		var _t28;
+		var _t29;
+		var _t30;
+		var _t31;
+		var _t32;
+		var _t33;
+		var _t34;
+		var _t36;
+		this._latestPH = 405;
+		_t26 = this._t3 & 15 & 255;
+		_t27 = _t26;
+		_t28 = _t27 << tardis.Int64.getLow(new tardis.Int64(0,12));
+		_t29 = this._t9 & 63 & 255;
+		_t30 = _t29;
+		_t31 = _t30 << tardis.Int64.getLow(new tardis.Int64(0,6));
+		_t32 = tardis.Force.toInt32(_t28 | _t31);
+		_t33 = this._t22 & 63 & 255;
+		_t34 = _t33;
+		this._t35 = tardis.Force.toInt32(_t32 | _t34);
+		this._latestPH = 406;
+		_t36 = this._t35 <= 2047;
+		this._Next = _t36?23:24;
+	}
+	,SubFn12: function() {
+		var _t25;
+		this._latestPH = 399;
+		_t25 = tardis.Force.uintCompare(192,this._t22) <= 0;
+		this._Next = _t25?18:19;
+	}
+	,SubFn11: function() {
+		var _t24;
+		this._latestPH = 404;
+		_t24 = tardis.Force.uintCompare(this._t3,240) < 0;
+		this._Next = _t24?21:22;
+	}
+	,SubFn10: function() {
+		var _t21;
+		var _t23;
+		this._latestPH = 398;
+		if(2 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t21 = this.p_p.addr(2);
+		this._t22 = _t21.ref() | 0;
+		this._latestPH = 399;
+		_t23 = tardis.Force.uintCompare(this._t22,128) < 0;
+		this._Next = _t23?18:20;
+	}
+	,SubFn9: function() {
+		var _t20;
+		this._latestPH = 395;
+		_t20 = this._t0 < 3;
+		this._Next = _t20?16:17;
+	}
+	,SubFn8: function() {
+		var _t13;
+		var _t14;
+		var _t15;
+		var _t16;
+		var _t17;
+		var _t19;
+		this._latestPH = 387;
+		_t13 = this._t3 & 31 & 255;
+		_t14 = _t13;
+		_t15 = _t14 << tardis.Int64.getLow(new tardis.Int64(0,6));
+		_t16 = this._t9 & 63 & 255;
+		_t17 = _t16;
+		this._t18 = tardis.Force.toInt32(_t15 | _t17);
+		this._latestPH = 388;
+		_t19 = this._t18 <= 127;
+		this._Next = _t19?14:15;
+	}
+	,SubFn7: function() {
+		var _t12;
+		this._latestPH = 381;
+		_t12 = tardis.Force.uintCompare(192,this._t9) <= 0;
+		this._Next = _t12?9:10;
+	}
+	,SubFn6: function() {
+		var _t11;
+		this._latestPH = 386;
+		_t11 = tardis.Force.uintCompare(this._t3,224) < 0;
+		this._Next = _t11?12:13;
+	}
+	,SubFn5: function() {
+		var _t8;
+		var _t10;
+		this._latestPH = 380;
+		if(1 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t8 = this.p_p.addr(1);
+		this._t9 = _t8.ref() | 0;
+		this._latestPH = 381;
+		_t10 = tardis.Force.uintCompare(this._t9,128) < 0;
+		this._Next = _t10?9:11;
+	}
+	,SubFn4: function() {
+		var _t7;
+		this._latestPH = 377;
+		_t7 = this._t0 < 2;
+		this._Next = _t7?7:8;
+	}
+	,SubFn3: function() {
+		var _t6;
+		this._latestPH = 372;
+		_t6 = tardis.Force.uintCompare(this._t3,192) < 0;
+		this._Next = _t6?5:6;
+	}
+	,SubFn2: function() {
+		this._latestPH = 368;
+		this._t5 = this._t3;
+	}
+	,SubFn1: function() {
+		var _t2;
+		var _t4;
+		this._latestPH = 364;
+		if(0 >= this.p_p.len()) tardis.Scheduler.ioor();
+		_t2 = this.p_p.addr(0);
+		this._t3 = _t2.ref() | 0;
+		this._latestPH = 367;
+		_t4 = tardis.Force.uintCompare(this._t3,128) < 0;
+		this._Next = _t4?3:4;
 	}
 	,SubFn0: function() {
-		var _t0;
-		_t0 = tardis.Go.hxutil_init_36_guard.ref();
-		this._Next = _t0?2:1;
+		var _t1;
+		this._latestPH = 360;
+		this._t0 = (function($this) {
+			var $r;
+			var _v = $this.p_p;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		this._latestPH = 361;
+		_t1 = this._t0 < 1;
+		this._Next = _t1?1:2;
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 771;
+				this._latestPH = 359;
 				this._latestBlock = 0;
 				this.SubFn0();
 				break;
 			case 1:
-				this._latestPH = 771;
+				this._latestPH = 359;
 				this._latestBlock = 1;
-				tardis.Go.hxutil_init_36_guard.store(true);
-				this._Next = 2;
-				break;
+				this._latestPH = 362;
+				this._res = { r0 : 65533, r1 : 0, r2 : true};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
 			case 2:
-				this._latestPH = 771;
+				this._latestPH = 362;
 				this._latestBlock = 2;
+				this.SubFn1();
+				break;
+			case 3:
+				this._latestPH = 362;
+				this._latestBlock = 3;
+				this._latestPH = 368;
+				this._t5 = this._t3;
+				this._latestPH = 368;
+				this._res = { r0 : this._t5, r1 : 1, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis._Go.Go_hxutil_init
-});
-tardis.Go_haxegoruntime_Callers = function(gr,_bds,p_skip,p_pc) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,410,"Go_haxegoruntime_Callers");
-	this._bds = _bds;
-	this.p_skip = p_skip;
-	this.p_pc = p_pc;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_Callers"] = tardis.Go_haxegoruntime_Callers;
-$hxExpose(tardis.Go_haxegoruntime_Callers, "Go_haxegoruntime_Callers");
-tardis.Go_haxegoruntime_Callers.__name__ = ["tardis","Go_haxegoruntime_Callers"];
-tardis.Go_haxegoruntime_Callers.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_Callers.callFromHaxe = function(p_skip,p_pc) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_Callers(0,[],p_skip,p_pc).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Callers.callFromRT = function(_gr,p_skip,p_pc) {
-	var _sf = new tardis.Go_haxegoruntime_Callers(_gr,[],p_skip,p_pc).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Callers.call = function(gr,_bds,p_skip,p_pc) {
-	return new tardis.Go_haxegoruntime_Callers(gr,_bds,p_skip,p_pc);
-}
-tardis.Go_haxegoruntime_Callers.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_Callers.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.Callers() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
+			case 4:
+				this._latestPH = 368;
+				this._latestBlock = 4;
+				this.SubFn3();
+				break;
+			case 5:
+				this._latestPH = 368;
+				this._latestBlock = 5;
+				this._latestPH = 373;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 6:
+				this._latestPH = 373;
+				this._latestBlock = 6;
+				this.SubFn4();
+				break;
+			case 7:
+				this._latestPH = 373;
+				this._latestBlock = 7;
+				this._latestPH = 378;
+				this._res = { r0 : 65533, r1 : 1, r2 : true};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 8:
+				this._latestPH = 378;
+				this._latestBlock = 8;
+				this.SubFn5();
+				break;
+			case 9:
+				this._latestPH = 378;
+				this._latestBlock = 9;
+				this._latestPH = 382;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 10:
+				this._latestPH = 382;
+				this._latestBlock = 10;
+				this.SubFn6();
+				break;
+			case 11:
+				this._latestPH = 382;
+				this._latestBlock = 11;
+				this.SubFn7();
+				break;
+			case 12:
+				this._latestPH = 382;
+				this._latestBlock = 12;
+				this.SubFn8();
+				break;
+			case 13:
+				this._latestPH = 382;
+				this._latestBlock = 13;
+				this.SubFn9();
+				break;
+			case 14:
+				this._latestPH = 382;
+				this._latestBlock = 14;
+				this._latestPH = 389;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 15:
+				this._latestPH = 389;
+				this._latestBlock = 15;
+				this._latestPH = 391;
+				this._res = { r0 : this._t18, r1 : 2, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 16:
+				this._latestPH = 391;
+				this._latestBlock = 16;
+				this._latestPH = 396;
+				this._res = { r0 : 65533, r1 : 1, r2 : true};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 17:
+				this._latestPH = 396;
+				this._latestBlock = 17;
+				this.SubFn10();
+				break;
+			case 18:
+				this._latestPH = 396;
+				this._latestBlock = 18;
+				this._latestPH = 400;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 19:
+				this._latestPH = 400;
+				this._latestBlock = 19;
+				this.SubFn11();
+				break;
+			case 20:
+				this._latestPH = 400;
+				this._latestBlock = 20;
+				this.SubFn12();
+				break;
+			case 21:
+				this._latestPH = 400;
+				this._latestBlock = 21;
+				this.SubFn13();
+				break;
+			case 22:
+				this._latestPH = 400;
+				this._latestBlock = 22;
+				this.SubFn14();
+				break;
+			case 23:
+				this._latestPH = 400;
+				this._latestBlock = 23;
+				this._latestPH = 407;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 24:
+				this._latestPH = 407;
+				this._latestBlock = 24;
+				this.SubFn15();
+				break;
+			case 25:
+				this._latestPH = 407;
+				this._latestBlock = 25;
 				this._latestPH = 410;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.Callers() not yet implemented");
-				tardis.Scheduler.panic(this._goroutine,this._t0);
-				this._Next = -1;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
 				return this;
-			case -1:
+			case 26:
 				this._latestPH = 410;
-				this._latestBlock = -1;
+				this._latestBlock = 26;
+				this._latestPH = 412;
+				this._res = { r0 : this._t35, r1 : 3, r2 : false};
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
+			case 27:
+				this._latestPH = 412;
+				this._latestBlock = 27;
+				this.SubFn16();
+				break;
+			case 28:
+				this._latestPH = 412;
+				this._latestBlock = 28;
+				this._latestPH = 417;
+				this._res = { r0 : 65533, r1 : 1, r2 : true};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 29:
+				this._latestPH = 417;
+				this._latestBlock = 29;
+				this.SubFn17();
+				break;
+			case 30:
+				this._latestPH = 417;
+				this._latestBlock = 30;
+				this._latestPH = 421;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 31:
+				this._latestPH = 421;
+				this._latestBlock = 31;
+				this.SubFn18();
+				break;
+			case 32:
+				this._latestPH = 421;
+				this._latestBlock = 32;
+				this.SubFn19();
+				break;
+			case 33:
+				this._latestPH = 421;
+				this._latestBlock = 33;
+				this.SubFn20();
+				break;
+			case 34:
+				this._latestPH = 421;
+				this._latestBlock = 34;
+				this._latestPH = 434;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 35:
+				this._latestPH = 434;
+				this._latestBlock = 35;
+				this._latestPH = 428;
+				this._res = { r0 : 65533, r1 : 1, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 36:
+				this._latestPH = 428;
+				this._latestBlock = 36;
+				this._latestPH = 430;
+				this._res = { r0 : this._t58, r1 : 4, r2 : false};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 37:
+				this._latestPH = 430;
+				this._latestBlock = 37;
+				this.SubFn21();
+				break;
 			default:
 				tardis.Scheduler.bbi();
 			}
@@ -17537,250 +15047,21 @@ tardis.Go_haxegoruntime_Callers.prototype = $extend(tardis.StackFrameBasis.proto
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_haxegoruntime_Callers
-});
-tardis.Go_haxegoruntime_Rune2Raw = function(gr,_bds,p_oneRune) {
-	this._Next = 0;
-	this._t2 = null;
-	this._t1 = null;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,161,"Go_haxegoruntime_Rune2Raw");
-	this._bds = _bds;
-	this.p_oneRune = p_oneRune;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_Rune2Raw"] = tardis.Go_haxegoruntime_Rune2Raw;
-$hxExpose(tardis.Go_haxegoruntime_Rune2Raw, "Go_haxegoruntime_Rune2Raw");
-tardis.Go_haxegoruntime_Rune2Raw.__name__ = ["tardis","Go_haxegoruntime_Rune2Raw"];
-tardis.Go_haxegoruntime_Rune2Raw.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_Rune2Raw.callFromHaxe = function(p_oneRune) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_Rune2Raw(0,[],p_oneRune).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Rune2Raw.callFromRT = function(_gr,p_oneRune) {
-	var _sf = new tardis.Go_haxegoruntime_Rune2Raw(_gr,[],p_oneRune).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_Rune2Raw.call = function(gr,_bds,p_oneRune) {
-	return new tardis.Go_haxegoruntime_Rune2Raw(gr,_bds,p_oneRune);
-}
-tardis.Go_haxegoruntime_Rune2Raw.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_Rune2Raw.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		var _t1;
-		this._latestPH = 162;
-		this._t0 = new tardis.Slice(new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			{
-				var _g = 0;
-				while(_g < 1) {
-					var _i = _g++;
-					_v[_i] = 0;
-				}
-			}
-			$r = _v;
-			return $r;
-		}(this))),0,1);
-		this._latestPH = 163;
-		if(0 >= this._t0.len()) tardis.Scheduler.ioor();
-		_t1 = this._t0.addr(0);
-		_t1.store(this.p_oneRune);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 161;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._latestPH = 164;
-				this._SF1 = new tardis.Go_haxegoruntime_Runes2Raw(this._goroutine,[],this._t0);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 164;
-				this._latestBlock = -1;
-				this._t2 = this._SF1.res();
-				this._res = this._t2;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_Rune2Raw
-});
-tardis.Go_haxegoruntime_C5 = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,209,"Go_haxegoruntime_C5");
-	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	this.p_a4 = p_a4;
-	this.p_a5 = p_a5;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_C5"] = tardis.Go_haxegoruntime_C5;
-$hxExpose(tardis.Go_haxegoruntime_C5, "Go_haxegoruntime_C5");
-tardis.Go_haxegoruntime_C5.__name__ = ["tardis","Go_haxegoruntime_C5"];
-tardis.Go_haxegoruntime_C5.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C5.callFromHaxe = function(p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C5(0,[],p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C5.callFromRT = function(_gr,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	var _sf = new tardis.Go_haxegoruntime_C5(_gr,[],p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C5.call = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5) {
-	return new tardis.Go_haxegoruntime_C5(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5);
-}
-tardis.Go_haxegoruntime_C5.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C5.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 209;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C5
-});
-tardis.Go_main_MouseMove = function(gr,_bds,p_x,p_y) {
-	this._Next = 0;
-	this._t5 = null;
-	this._t4 = null;
-	this._t3 = null;
-	this._t2 = null;
-	this._t1 = null;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,21,"Go_main_MouseMove");
-	this._bds = _bds;
-	this.p_x = p_x;
-	this.p_y = p_y;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_main_MouseMove"] = tardis.Go_main_MouseMove;
-$hxExpose(tardis.Go_main_MouseMove, "Go_main_MouseMove");
-tardis.Go_main_MouseMove.__name__ = ["tardis","Go_main_MouseMove"];
-tardis.Go_main_MouseMove.__interfaces__ = [tardis.StackFrame];
-tardis.Go_main_MouseMove.callFromHaxe = function(p_x,p_y) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_main_MouseMove(0,[],p_x,p_y).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis.Go_main_MouseMove.callFromRT = function(_gr,p_x,p_y) {
-	var _sf = new tardis.Go_main_MouseMove(_gr,[],p_x,p_y).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis.Go_main_MouseMove.call = function(gr,_bds,p_x,p_y) {
-	return new tardis.Go_main_MouseMove(gr,_bds,p_x,p_y);
-}
-tardis.Go_main_MouseMove.__super__ = tardis.StackFrameBasis;
-tardis.Go_main_MouseMove.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		var _t1;
-		var _t2;
-		var _t3;
-		var _t4;
-		this._t0 = tardis.Go.main_mouseEvents.ref();
-		_t1 = new tardis.Pointer((function($this) {
-			var $r;
-			var _v = new Array();
-			_v = [0,0.0,0.0];
-			$r = _v;
-			return $r;
-		}(this)));
-		_t2 = _t1.addr(0);
-		_t2.store(2);
-		_t3 = _t1.addr(1);
-		_t3.store(this.p_x);
-		_t4 = _t1.addr(2);
-		_t4.store(this.p_y);
-		this._t5 = _t1.ref();
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 21;
-				this._latestBlock = 0;
-				this.SubFn0();
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 21;
-				this._latestBlock = -1;
-				if(!this._t0.hasSpace()) return this;
-				this._t0.send(this._t5);
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis.Go_main_MouseMove
+	,__class__: tardis._Go.Go_utf8_decodeRuneInternal
 });
 tardis.Go_haxegoruntime_Raw2Runes = function(gr,_bds,p_s) {
 	this._Next = 0;
 	this._Phi = 0;
-	this._t27 = null;
-	this._t26 = 0;
+	this._t26 = null;
 	this._t25 = 0;
-	this._t24 = null;
+	this._t24 = 0;
 	this._t23 = null;
-	this._t22 = false;
-	this._t21 = 0;
+	this._t22 = null;
+	this._t21 = false;
 	this._t20 = 0;
-	this._t19 = null;
+	this._t19 = 0;
 	this._t18 = null;
+	this._t17 = null;
 	this._t16 = null;
 	this._t15 = 0;
 	this._t14 = 0;
@@ -17798,7 +15079,7 @@ tardis.Go_haxegoruntime_Raw2Runes = function(gr,_bds,p_s) {
 	this._t2 = 0;
 	this._t1 = false;
 	this._t0 = 0;
-	tardis.StackFrameBasis.call(this,gr,102,"Go_haxegoruntime_Raw2Runes");
+	tardis.StackFrameBasis.call(this,gr,120,"Go_haxegoruntime_Raw2Runes");
 	this._bds = _bds;
 	this.p_s = p_s;
 	tardis.Scheduler.push(gr,this);
@@ -17827,30 +15108,30 @@ tardis.Go_haxegoruntime_Raw2Runes.call = function(gr,_bds,p_s) {
 tardis.Go_haxegoruntime_Raw2Runes.__super__ = tardis.StackFrameBasis;
 tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	SubFn8: function() {
+		var _t22;
 		var _t23;
 		var _t24;
 		var _t25;
-		var _t26;
-		this._latestPH = 113;
-		if(this._t21 < 0 || this._t21 >= this._t6.len()) tardis.Scheduler.ioor();
-		_t23 = this._t6.addr(this._t21);
-		if(this._t21 < 0 || this._t21 >= this.p_s.len()) tardis.Scheduler.ioor();
-		_t24 = this.p_s.addr(this._t21);
-		_t25 = _t24.ref() | 0;
-		_t26 = _t25;
-		_t23.store(_t26);
+		this._latestPH = 131;
+		if(this._t20 < 0 || this._t20 >= this._t6.len()) tardis.Scheduler.ioor();
+		_t22 = this._t6.addr(this._t20);
+		if(this._t20 < 0 || this._t20 >= this.p_s.len()) tardis.Scheduler.ioor();
+		_t23 = this.p_s.addr(this._t20);
+		_t24 = _t23.ref() | 0;
+		_t25 = _t24;
+		_t22.store(_t25);
 		this._Next = 8;
 	}
 	,SubFn7: function() {
-		var _t22;
-		this._t21 = this._t20 + 1;
-		_t22 = this._t21 < this._t7;
-		this._Next = _t22?9:10;
+		var _t21;
+		this._t20 = this._t19 + 1;
+		_t21 = this._t20 < this._t7;
+		this._Next = _t21?9:10;
 	}
 	,SubFn6: function() {
-		var _t18;
-		this._latestPH = 120;
-		_t18 = new tardis.Pointer((function($this) {
+		var _t17;
+		this._latestPH = 137;
+		_t17 = new tardis.Pointer((function($this) {
 			var $r;
 			var _v = new Array();
 			{
@@ -17863,14 +15144,14 @@ tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.pro
 			$r = _v;
 			return $r;
 		}(this)));
-		this._t19 = new tardis.Slice(_t18,0,-1);
+		this._t18 = new tardis.Slice(_t17,0,-1);
 	}
 	,SubFn5: function() {
 		var _t12;
 		var _t13;
 		var _t14;
 		var _t15;
-		this._latestPH = 107;
+		this._latestPH = 125;
 		if(this._t10 < 0 || this._t10 >= this._t3.len()) tardis.Scheduler.ioor();
 		_t12 = this._t3.addr(this._t10);
 		if(this._t10 < 0 || this._t10 >= this.p_s.len()) tardis.Scheduler.ioor();
@@ -17893,7 +15174,7 @@ tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.pro
 	}
 	,SubFn2: function() {
 		var _t5;
-		this._latestPH = 111;
+		this._latestPH = 129;
 		_t5 = (function($this) {
 			var $r;
 			var _v = $this.p_s;
@@ -17923,7 +15204,7 @@ tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.pro
 	}
 	,SubFn1: function() {
 		var _t2;
-		this._latestPH = 105;
+		this._latestPH = 123;
 		_t2 = (function($this) {
 			var $r;
 			var _v = $this.p_s;
@@ -17962,51 +15243,51 @@ tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.pro
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 0;
 				this.SubFn0();
 				this._Phi = 0;
 				break;
 			case 1:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 1;
 				this.SubFn1();
 				this._Phi = 1;
 				break;
 			case 2:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 2;
 				this.SubFn2();
 				this._Phi = 2;
 				break;
 			case 3:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 3;
 				this.SubFn3();
 				this._Phi = 3;
 				break;
 			case 4:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 4;
 				this._t9 = this._Phi == 1?-1:this._Phi == 5?this._t10:0;
 				this.SubFn4();
 				this._Phi = 4;
 				break;
 			case 5:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 5;
 				this.SubFn5();
 				this._Phi = 5;
 				break;
 			case 6:
-				this._latestPH = 102;
+				this._latestPH = 120;
 				this._latestBlock = 6;
-				this._latestPH = 109;
+				this._latestPH = 127;
 				this._SF1 = new tardis.Go_haxegoruntime_UTF16toRunes(this._goroutine,[],this._t3);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 109;
+				this._latestPH = 127;
 				this._latestBlock = -1;
 				this._t16 = this._SF1.res();
 				this._res = this._t16;
@@ -18014,41 +15295,39 @@ tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.pro
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 7:
-				this._latestPH = 109;
+				this._latestPH = 127;
 				this._latestBlock = 7;
-				this._latestPH = 118;
-				throw "goruntime.Runes2String() unrecognised encoding";
 				this.SubFn6();
-				this._latestPH = 120;
-				this._res = this._t19;
+				this._latestPH = 137;
+				this._res = this._t18;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
 			case 8:
-				this._latestPH = 120;
+				this._latestPH = 137;
 				this._latestBlock = 8;
-				this._t20 = this._Phi == 2?-1:this._Phi == 9?this._t21:0;
+				this._t19 = this._Phi == 2?-1:this._Phi == 9?this._t20:0;
 				this.SubFn7();
 				this._Phi = 8;
 				break;
 			case 9:
-				this._latestPH = 120;
+				this._latestPH = 137;
 				this._latestBlock = 9;
 				this.SubFn8();
 				this._Phi = 9;
 				break;
 			case 10:
-				this._latestPH = 120;
+				this._latestPH = 137;
 				this._latestBlock = 10;
-				this._latestPH = 115;
-				this._SF3 = new tardis.Go_haxegoruntime_UTF8toRunes(this._goroutine,[],this._t6);
-				this._Next = -3;
+				this._latestPH = 133;
+				this._SF2 = new tardis.Go_haxegoruntime_UTF8toRunes(this._goroutine,[],this._t6);
+				this._Next = -2;
 				return this;
-			case -3:
-				this._latestPH = 115;
-				this._latestBlock = -3;
-				this._t27 = this._SF3.res();
-				this._res = this._t27;
+			case -2:
+				this._latestPH = 133;
+				this._latestBlock = -2;
+				this._t26 = this._SF2.res();
+				this._res = this._t26;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -18062,111 +15341,266 @@ tardis.Go_haxegoruntime_Raw2Runes.prototype = $extend(tardis.StackFrameBasis.pro
 	}
 	,__class__: tardis.Go_haxegoruntime_Raw2Runes
 });
-tardis.Go_haxegoruntime_SetFinalizer = function(gr,_bds,p_x,p_f) {
+tardis.Go_haxegoruntime_StringCompare = function(gr,_bds,p_a,p_b) {
 	this._Next = 0;
+	this._Phi = 0;
+	this._t23 = false;
+	this._t22 = 0;
+	this._t21 = 0;
+	this._t20 = 0;
+	this._t19 = false;
+	this._t18 = 0;
+	this._t17 = null;
+	this._t16 = 0;
+	this._t15 = null;
+	this._t14 = false;
+	this._t13 = 0;
+	this._t12 = false;
+	this._t11 = 0;
+	this._t10 = 0;
+	this._t9 = false;
+	this._t8 = 0;
+	this._t7 = 0;
+	this._t6 = false;
+	this._t5 = 0;
+	this._t4 = null;
+	this._t3 = 0;
+	this._t2 = null;
+	this._t1 = null;
 	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,412,"Go_haxegoruntime_SetFinalizer");
+	tardis.StackFrameBasis.call(this,gr,185,"Go_haxegoruntime_StringCompare");
 	this._bds = _bds;
-	this.p_x = p_x;
-	this.p_f = p_f;
+	this.p_a = p_a;
+	this.p_b = p_b;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_haxegoruntime_SetFinalizer"] = tardis.Go_haxegoruntime_SetFinalizer;
-$hxExpose(tardis.Go_haxegoruntime_SetFinalizer, "Go_haxegoruntime_SetFinalizer");
-tardis.Go_haxegoruntime_SetFinalizer.__name__ = ["tardis","Go_haxegoruntime_SetFinalizer"];
-tardis.Go_haxegoruntime_SetFinalizer.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_SetFinalizer.callFromHaxe = function(p_x,p_f) {
+$hxClasses["tardis.Go_haxegoruntime_StringCompare"] = tardis.Go_haxegoruntime_StringCompare;
+$hxExpose(tardis.Go_haxegoruntime_StringCompare, "Go_haxegoruntime_StringCompare");
+tardis.Go_haxegoruntime_StringCompare.__name__ = ["tardis","Go_haxegoruntime_StringCompare"];
+tardis.Go_haxegoruntime_StringCompare.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_StringCompare.callFromHaxe = function(p_a,p_b) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_SetFinalizer(0,[],p_x,p_f).run();
+	var _sf = new tardis.Go_haxegoruntime_StringCompare(0,[],p_a,p_b).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
 }
-tardis.Go_haxegoruntime_SetFinalizer.callFromRT = function(_gr,p_x,p_f) {
-	var _sf = new tardis.Go_haxegoruntime_SetFinalizer(_gr,[],p_x,p_f).run();
+tardis.Go_haxegoruntime_StringCompare.callFromRT = function(_gr,p_a,p_b) {
+	var _sf = new tardis.Go_haxegoruntime_StringCompare(_gr,[],p_a,p_b).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
+	return _sf._res;
 }
-tardis.Go_haxegoruntime_SetFinalizer.call = function(gr,_bds,p_x,p_f) {
-	return new tardis.Go_haxegoruntime_SetFinalizer(gr,_bds,p_x,p_f);
+tardis.Go_haxegoruntime_StringCompare.call = function(gr,_bds,p_a,p_b) {
+	return new tardis.Go_haxegoruntime_StringCompare(gr,_bds,p_a,p_b);
 }
-tardis.Go_haxegoruntime_SetFinalizer.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_SetFinalizer.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.SetFinalizer() not yet implemented");
+tardis.Go_haxegoruntime_StringCompare.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_StringCompare.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn7: function() {
+		var _t21;
+		var _t22;
+		var _t23;
+		this._latestPH = 202;
+		_t21 = (function($this) {
+			var $r;
+			var _v = $this._t0;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t22 = (function($this) {
+			var $r;
+			var _v = $this._t1;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t23 = _t21 < _t22;
+		this._Next = _t23?11:12;
+	}
+	,SubFn6: function() {
+		this._t20 = this._t10 + 1;
+		this._Next = 3;
+	}
+	,SubFn5: function() {
+		var _t15;
+		var _t16;
+		var _t17;
+		var _t18;
+		var _t19;
+		this._latestPH = 194;
+		if(this._t10 < 0 || this._t10 >= this._t0.len()) tardis.Scheduler.ioor();
+		_t15 = this._t0.addr(this._t10);
+		_t16 = _t15.ref() | 0;
+		if(this._t10 < 0 || this._t10 >= this._t1.len()) tardis.Scheduler.ioor();
+		_t17 = this._t1.addr(this._t10);
+		_t18 = _t17.ref() | 0;
+		_t19 = tardis.Force.uintCompare(_t16,_t18) > 0;
+		this._Next = _t19?7:8;
+	}
+	,SubFn4: function() {
+		var _t13;
+		var _t14;
+		_t13 = (function($this) {
+			var $r;
+			var _v = $this._t1;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t14 = this._t10 < _t13;
+		this._Next = _t14?1:2;
+	}
+	,SubFn3: function() {
+		var _t11;
+		var _t12;
+		this._latestPH = 190;
+		_t11 = (function($this) {
+			var $r;
+			var _v = $this._t0;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t12 = this._t10 < _t11;
+		this._Next = _t12?4:2;
+	}
+	,SubFn2: function() {
+		var _t7;
+		var _t8;
+		var _t9;
+		this._latestPH = 199;
+		_t7 = (function($this) {
+			var $r;
+			var _v = $this._t0;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t8 = (function($this) {
+			var $r;
+			var _v = $this._t1;
+			$r = _v == null?0:_v.end - _v.start;
+			return $r;
+		}(this));
+		_t9 = _t7 == _t8;
+		this._Next = _t9?9:10;
+	}
+	,SubFn1: function() {
+		var _t2;
+		var _t3;
+		var _t4;
+		var _t5;
+		var _t6;
+		this._latestPH = 191;
+		if(this._t10 < 0 || this._t10 >= this._t0.len()) tardis.Scheduler.ioor();
+		_t2 = this._t0.addr(this._t10);
+		_t3 = _t2.ref() | 0;
+		if(this._t10 < 0 || this._t10 >= this._t1.len()) tardis.Scheduler.ioor();
+		_t4 = this._t1.addr(this._t10);
+		_t5 = _t4.ref() | 0;
+		_t6 = tardis.Force.uintCompare(_t3,_t5) < 0;
+		this._Next = _t6?5:6;
+	}
+	,SubFn0: function() {
+		this._latestPH = 187;
+		this._t0 = tardis.Force.toUTF8slice(this._goroutine,this.p_a);
+		this._latestPH = 188;
+		this._t1 = tardis.Force.toUTF8slice(this._goroutine,this.p_b);
+		this._Next = 3;
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 412;
+				this._latestPH = 185;
 				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.SetFinalizer() not yet implemented");
-				tardis.Scheduler.panic(this._goroutine,this._t0);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 412;
-				this._latestBlock = -1;
+				this._latestPH = 187;
+				this._t0 = tardis.Force.toUTF8slice(this._goroutine,this.p_a);
+				this._latestPH = 188;
+				this._t1 = tardis.Force.toUTF8slice(this._goroutine,this.p_b);
+				this._Next = 3;
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 185;
+				this._latestBlock = 1;
+				this.SubFn1();
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 185;
+				this._latestBlock = 2;
+				this.SubFn2();
+				this._Phi = 2;
+				break;
+			case 3:
+				this._latestPH = 185;
+				this._latestBlock = 3;
+				this._latestPH = 189;
+				this._t10 = this._Phi == 0?0:this._Phi == 8?this._t20:0;
+				this.SubFn3();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 189;
+				this._latestBlock = 4;
+				this.SubFn4();
+				this._Phi = 4;
+				break;
+			case 5:
+				this._latestPH = 189;
+				this._latestBlock = 5;
+				this._latestPH = 192;
+				this._res = -1;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return null;
-	}
-	,__class__: tardis.Go_haxegoruntime_SetFinalizer
-});
-tardis.Go_haxegoruntime_M0 = function(gr,_bds,p_rx,p_typ,p_meth) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,215,"Go_haxegoruntime_M0");
-	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_M0"] = tardis.Go_haxegoruntime_M0;
-$hxExpose(tardis.Go_haxegoruntime_M0, "Go_haxegoruntime_M0");
-tardis.Go_haxegoruntime_M0.__name__ = ["tardis","Go_haxegoruntime_M0"];
-tardis.Go_haxegoruntime_M0.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M0.callFromHaxe = function(p_rx,p_typ,p_meth) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M0(0,[],p_rx,p_typ,p_meth).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M0.callFromRT = function(_gr,p_rx,p_typ,p_meth) {
-	var _sf = new tardis.Go_haxegoruntime_M0(_gr,[],p_rx,p_typ,p_meth).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M0.call = function(gr,_bds,p_rx,p_typ,p_meth) {
-	return new tardis.Go_haxegoruntime_M0(gr,_bds,p_rx,p_typ,p_meth);
-}
-tardis.Go_haxegoruntime_M0.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M0.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 215;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
+			case 6:
+				this._latestPH = 192;
+				this._latestBlock = 6;
+				this.SubFn5();
+				this._Phi = 6;
+				break;
+			case 7:
+				this._latestPH = 192;
+				this._latestBlock = 7;
+				this._latestPH = 195;
+				this._res = 1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 8:
+				this._latestPH = 195;
+				this._latestBlock = 8;
+				this._t20 = this._t10 + 1;
+				this._Next = 3;
+				this._Phi = 8;
+				break;
+			case 9:
+				this._latestPH = 195;
+				this._latestBlock = 9;
+				this._latestPH = 200;
+				this._res = 0;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 10:
+				this._latestPH = 200;
+				this._latestBlock = 10;
+				this.SubFn7();
+				this._Phi = 10;
+				break;
+			case 11:
+				this._latestPH = 200;
+				this._latestBlock = 11;
+				this._latestPH = 203;
+				this._res = -1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 12:
+				this._latestPH = 203;
+				this._latestBlock = 12;
+				this._latestPH = 205;
+				this._res = 1;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -18178,7 +15612,7 @@ tardis.Go_haxegoruntime_M0.prototype = $extend(tardis.StackFrameBasis.prototype,
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_haxegoruntime_M0
+	,__class__: tardis.Go_haxegoruntime_StringCompare
 });
 tardis._Go.Go_main_handleMouse = function(gr,_bds) {
 	this._Next = 0;
@@ -18451,39 +15885,505 @@ tardis._Go.Go_main_handleMouse.prototype = $extend(tardis.StackFrameBasis.protot
 	}
 	,__class__: tardis._Go.Go_main_handleMouse
 });
-tardis.Go_utf8_FullRune = function(gr,_bds,p_p) {
+tardis.Go_utf16_EncodeRune = function(gr,_bds,p_r) {
 	this._Next = 0;
-	this._t4 = false;
-	this._t3 = false;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,753,"Go_utf8_FullRune");
+	this._t8 = false;
+	this._t7 = false;
+	this._t6 = 0;
+	this._t5 = 0;
+	this._t4 = 0;
+	this._t3 = 0;
+	this._t2 = 0;
+	this._t1 = 0;
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,253,"Go_utf16_EncodeRune");
 	this._bds = _bds;
-	this.p_p = p_p;
+	this.p_r = p_r;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_utf8_FullRune"] = tardis.Go_utf8_FullRune;
-$hxExpose(tardis.Go_utf8_FullRune, "Go_utf8_FullRune");
-tardis.Go_utf8_FullRune.__name__ = ["tardis","Go_utf8_FullRune"];
-tardis.Go_utf8_FullRune.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_FullRune.callFromHaxe = function(p_p) {
+$hxClasses["tardis.Go_utf16_EncodeRune"] = tardis.Go_utf16_EncodeRune;
+$hxExpose(tardis.Go_utf16_EncodeRune, "Go_utf16_EncodeRune");
+tardis.Go_utf16_EncodeRune.__name__ = ["tardis","Go_utf16_EncodeRune"];
+tardis.Go_utf16_EncodeRune.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf16_EncodeRune.callFromHaxe = function(p_r) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_FullRune(0,[],p_p).run();
+	var _sf = new tardis.Go_utf16_EncodeRune(0,[],p_r).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_utf8_FullRune.callFromRT = function(_gr,p_p) {
-	var _sf = new tardis.Go_utf8_FullRune(_gr,[],p_p).run();
+tardis.Go_utf16_EncodeRune.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_utf16_EncodeRune(_gr,[],p_r).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_utf8_FullRune.call = function(gr,_bds,p_p) {
-	return new tardis.Go_utf8_FullRune(gr,_bds,p_p);
+tardis.Go_utf16_EncodeRune.call = function(gr,_bds,p_r) {
+	return new tardis.Go_utf16_EncodeRune(gr,_bds,p_r);
 }
-tardis.Go_utf8_FullRune.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_FullRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
+tardis.Go_utf16_EncodeRune.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf16_EncodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn3: function() {
+		var _t8;
+		this._latestPH = 254;
+		_t8 = this.p_r > 1114111;
+		this._Next = _t8?1:3;
+	}
+	,SubFn2: function() {
+		this._Next = this._t7?1:2;
+	}
+	,SubFn1: function() {
+		var _t2;
+		var _t3;
+		var _t5;
+		this._t1 = tardis.Force.toInt32(this.p_r - 65536);
+		this._latestPH = 258;
+		_t2 = this._t1 >> tardis.Int64.getLow(new tardis.Int64(0,10));
+		_t3 = tardis.Force.toInt32(_t2 & 1023);
+		this._t4 = tardis.Force.toInt32(55296 + _t3);
+		_t5 = tardis.Force.toInt32(this._t1 & 1023);
+		this._t6 = tardis.Force.toInt32(56320 + _t5);
+	}
+	,SubFn0: function() {
+		var _t0;
+		_t0 = this.p_r < 65536;
+		this._Next = _t0?1:4;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 253;
+				this._latestBlock = 0;
+				this.SubFn0();
+				break;
+			case 1:
+				this._latestPH = 253;
+				this._latestBlock = 1;
+				this._latestPH = 255;
+				this._res = { r0 : 65533, r1 : 65533};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 2:
+				this._latestPH = 255;
+				this._latestBlock = 2;
+				this.SubFn1();
+				this._latestPH = 258;
+				this._res = { r0 : this._t4, r1 : this._t6};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 3:
+				this._latestPH = 258;
+				this._latestBlock = 3;
+				this._latestPH = 254;
+				this._SF1 = new tardis.Go_utf16_IsSurrogate(this._goroutine,[],this.p_r);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 254;
+				this._latestBlock = -1;
+				this._t7 = this._SF1.res();
+				this._Next = this._t7?1:2;
+				break;
+			case 4:
+				this._latestPH = 254;
+				this._latestBlock = 4;
+				this.SubFn3();
+				break;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf16_EncodeRune
+});
+tardis.Go_utf8_RuneLen = function(gr,_bds,p_r) {
+	this._Next = 0;
+	this._Phi = 0;
+	this._t7 = false;
+	this._t6 = false;
+	this._t5 = false;
+	this._t4 = false;
+	this._t3 = false;
+	this._t2 = false;
+	this._t1 = false;
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,624,"Go_utf8_RuneLen");
+	this._bds = _bds;
+	this.p_r = p_r;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_RuneLen"] = tardis.Go_utf8_RuneLen;
+$hxExpose(tardis.Go_utf8_RuneLen, "Go_utf8_RuneLen");
+tardis.Go_utf8_RuneLen.__name__ = ["tardis","Go_utf8_RuneLen"];
+tardis.Go_utf8_RuneLen.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_RuneLen.callFromHaxe = function(p_r) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_RuneLen(0,[],p_r).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_RuneLen.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_utf8_RuneLen(_gr,[],p_r).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_RuneLen.call = function(gr,_bds,p_r) {
+	return new tardis.Go_utf8_RuneLen(gr,_bds,p_r);
+}
+tardis.Go_utf8_RuneLen.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_RuneLen.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn7: function() {
+		var _t7;
+		this._latestPH = 636;
+		_t7 = this.p_r <= 1114111;
+		this._Next = _t7?12:14;
+	}
+	,SubFn6: function() {
+		this._Next = this._t6?6:9;
+	}
+	,SubFn5: function() {
+		this._latestPH = 632;
+		this._t5 = this.p_r <= 57343;
+		this._Next = 11;
+	}
+	,SubFn4: function() {
+		var _t4;
+		this._latestPH = 634;
+		_t4 = this.p_r <= 65535;
+		this._Next = _t4?8:13;
+	}
+	,SubFn3: function() {
+		var _t3;
+		this._latestPH = 632;
+		_t3 = 55296 <= this.p_r;
+		this._Next = _t3?10:11;
+	}
+	,SubFn2: function() {
+		var _t2;
+		this._latestPH = 630;
+		_t2 = this.p_r <= 2047;
+		this._Next = _t2?4:7;
+	}
+	,SubFn1: function() {
+		var _t1;
+		this._latestPH = 628;
+		_t1 = this.p_r <= 127;
+		this._Next = _t1?2:5;
+	}
+	,SubFn0: function() {
+		var _t0;
+		this._latestPH = 626;
+		_t0 = this.p_r < 0;
+		this._Next = _t0?1:3;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 624;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 624;
+				this._latestBlock = 1;
+				this._latestPH = 627;
+				this._res = -1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 2:
+				this._latestPH = 627;
+				this._latestBlock = 2;
+				this._latestPH = 629;
+				this._res = 1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 3:
+				this._latestPH = 629;
+				this._latestBlock = 3;
+				this.SubFn1();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 629;
+				this._latestBlock = 4;
+				this._latestPH = 631;
+				this._res = 2;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 5:
+				this._latestPH = 631;
+				this._latestBlock = 5;
+				this.SubFn2();
+				this._Phi = 5;
+				break;
+			case 6:
+				this._latestPH = 631;
+				this._latestBlock = 6;
+				this._latestPH = 633;
+				this._res = -1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 7:
+				this._latestPH = 633;
+				this._latestBlock = 7;
+				this.SubFn3();
+				this._Phi = 7;
+				break;
+			case 8:
+				this._latestPH = 633;
+				this._latestBlock = 8;
+				this._latestPH = 635;
+				this._res = 3;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 9:
+				this._latestPH = 635;
+				this._latestBlock = 9;
+				this.SubFn4();
+				this._Phi = 9;
+				break;
+			case 10:
+				this._latestPH = 635;
+				this._latestBlock = 10;
+				this._latestPH = 632;
+				this._t5 = this.p_r <= 57343;
+				this._Next = 11;
+				this._Phi = 10;
+				break;
+			case 11:
+				this._latestPH = 635;
+				this._latestBlock = 11;
+				this._latestPH = 632;
+				this._t6 = this._Phi == 7?false:this._Phi == 10?this._t5:false;
+				this._Next = this._t6?6:9;
+				this._Phi = 11;
+				break;
+			case 12:
+				this._latestPH = 632;
+				this._latestBlock = 12;
+				this._latestPH = 637;
+				this._res = 4;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 13:
+				this._latestPH = 637;
+				this._latestBlock = 13;
+				this.SubFn7();
+				this._Phi = 13;
+				break;
+			case 14:
+				this._latestPH = 637;
+				this._latestBlock = 14;
+				this._latestPH = 639;
+				this._res = -1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_RuneLen
+});
+tardis.Go_utf8_ValidRune = function(gr,_bds,p_r) {
+	this._Next = 0;
+	this._Phi = 0;
+	this._t4 = false;
+	this._t3 = false;
+	this._t2 = false;
+	this._t1 = false;
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,747,"Go_utf8_ValidRune");
+	this._bds = _bds;
+	this.p_r = p_r;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_ValidRune"] = tardis.Go_utf8_ValidRune;
+$hxExpose(tardis.Go_utf8_ValidRune, "Go_utf8_ValidRune");
+tardis.Go_utf8_ValidRune.__name__ = ["tardis","Go_utf8_ValidRune"];
+tardis.Go_utf8_ValidRune.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_ValidRune.callFromHaxe = function(p_r) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_ValidRune(0,[],p_r).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_ValidRune.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_utf8_ValidRune(_gr,[],p_r).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_ValidRune.call = function(gr,_bds,p_r) {
+	return new tardis.Go_utf8_ValidRune(gr,_bds,p_r);
+}
+tardis.Go_utf8_ValidRune.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_ValidRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn4: function() {
+		this._Next = this._t4?2:5;
+	}
+	,SubFn3: function() {
+		this._latestPH = 751;
+		this._t3 = this.p_r <= 57343;
+		this._Next = 7;
+	}
+	,SubFn2: function() {
+		var _t2;
+		this._latestPH = 753;
+		_t2 = this.p_r > 1114111;
+		this._Next = _t2?4:8;
+	}
+	,SubFn1: function() {
+		var _t1;
+		this._latestPH = 751;
+		_t1 = 55296 <= this.p_r;
+		this._Next = _t1?6:7;
+	}
+	,SubFn0: function() {
+		var _t0;
+		this._latestPH = 749;
+		_t0 = this.p_r < 0;
+		this._Next = _t0?1:3;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 747;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 747;
+				this._latestBlock = 1;
+				this._latestPH = 750;
+				this._res = false;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 2:
+				this._latestPH = 750;
+				this._latestBlock = 2;
+				this._latestPH = 752;
+				this._res = false;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 3:
+				this._latestPH = 752;
+				this._latestBlock = 3;
+				this.SubFn1();
+				this._Phi = 3;
+				break;
+			case 4:
+				this._latestPH = 752;
+				this._latestBlock = 4;
+				this._latestPH = 754;
+				this._res = false;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			case 5:
+				this._latestPH = 754;
+				this._latestBlock = 5;
+				this.SubFn2();
+				this._Phi = 5;
+				break;
+			case 6:
+				this._latestPH = 754;
+				this._latestBlock = 6;
+				this._latestPH = 751;
+				this._t3 = this.p_r <= 57343;
+				this._Next = 7;
+				this._Phi = 6;
+				break;
+			case 7:
+				this._latestPH = 754;
+				this._latestBlock = 7;
+				this._latestPH = 751;
+				this._t4 = this._Phi == 3?false:this._Phi == 6?this._t3:false;
+				this._Next = this._t4?2:5;
+				this._Phi = 7;
+				break;
+			case 8:
+				this._latestPH = 751;
+				this._latestBlock = 8;
+				this._latestPH = 756;
+				this._res = true;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_ValidRune
+});
+tardis.Go_utf8_FullRuneInString = function(gr,_bds,p_s) {
+	this._Next = 0;
+	this._t4 = false;
+	this._t3 = false;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,523,"Go_utf8_FullRuneInString");
+	this._bds = _bds;
+	this.p_s = p_s;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_FullRuneInString"] = tardis.Go_utf8_FullRuneInString;
+$hxExpose(tardis.Go_utf8_FullRuneInString, "Go_utf8_FullRuneInString");
+tardis.Go_utf8_FullRuneInString.__name__ = ["tardis","Go_utf8_FullRuneInString"];
+tardis.Go_utf8_FullRuneInString.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_FullRuneInString.callFromHaxe = function(p_s) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_FullRuneInString(0,[],p_s).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_FullRuneInString.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_utf8_FullRuneInString(_gr,[],p_s).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_FullRuneInString.call = function(gr,_bds,p_s) {
+	return new tardis.Go_utf8_FullRuneInString(gr,_bds,p_s);
+}
+tardis.Go_utf8_FullRuneInString.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_FullRuneInString.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	SubFn0: function() {
 		this._t3 = this._t0.r2;
 		this._t4 = !this._t3;
@@ -18493,19 +16393,19 @@ tardis.Go_utf8_FullRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 753;
+				this._latestPH = 523;
 				this._latestBlock = 0;
-				this._latestPH = 754;
-				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInternal(this._goroutine,[],this.p_p);
+				this._latestPH = 524;
+				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInStringInternal(this._goroutine,[],this.p_s);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 754;
+				this._latestPH = 524;
 				this._latestBlock = -1;
 				this._t0 = this._SF1.res();
 				this._t3 = this._t0.r2;
 				this._t4 = !this._t3;
-				this._latestPH = 755;
+				this._latestPH = 525;
 				this._res = this._t4;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
@@ -18518,138 +16418,55 @@ tardis.Go_utf8_FullRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_utf8_FullRune
+	,__class__: tardis.Go_utf8_FullRuneInString
 });
-tardis.Go_utf8_ValidString = function(gr,_bds,p_s) {
+tardis.Go_haxegoruntime_RunesToUTF16 = function(gr,_bds,p_r) {
 	this._Next = 0;
-	this._t10 = false;
-	this._t9 = 0;
-	this._t7 = null;
-	this._t6 = "";
-	this._t5 = false;
-	this._t4 = 0;
-	this._t3 = 0;
-	this._t2 = false;
-	this._t1 = null;
 	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,965,"Go_utf8_ValidString");
+	tardis.StackFrameBasis.call(this,gr,140,"Go_haxegoruntime_RunesToUTF16");
 	this._bds = _bds;
-	this.p_s = p_s;
+	this.p_r = p_r;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_utf8_ValidString"] = tardis.Go_utf8_ValidString;
-$hxExpose(tardis.Go_utf8_ValidString, "Go_utf8_ValidString");
-tardis.Go_utf8_ValidString.__name__ = ["tardis","Go_utf8_ValidString"];
-tardis.Go_utf8_ValidString.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf8_ValidString.callFromHaxe = function(p_s) {
+$hxClasses["tardis.Go_haxegoruntime_RunesToUTF16"] = tardis.Go_haxegoruntime_RunesToUTF16;
+$hxExpose(tardis.Go_haxegoruntime_RunesToUTF16, "Go_haxegoruntime_RunesToUTF16");
+tardis.Go_haxegoruntime_RunesToUTF16.__name__ = ["tardis","Go_haxegoruntime_RunesToUTF16"];
+tardis.Go_haxegoruntime_RunesToUTF16.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_RunesToUTF16.callFromHaxe = function(p_r) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf8_ValidString(0,[],p_s).run();
+	var _sf = new tardis.Go_haxegoruntime_RunesToUTF16(0,[],p_r).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	return _sf._res;
 }
-tardis.Go_utf8_ValidString.callFromRT = function(_gr,p_s) {
-	var _sf = new tardis.Go_utf8_ValidString(_gr,[],p_s).run();
+tardis.Go_haxegoruntime_RunesToUTF16.callFromRT = function(_gr,p_r) {
+	var _sf = new tardis.Go_haxegoruntime_RunesToUTF16(_gr,[],p_r).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
 	return _sf._res;
 }
-tardis.Go_utf8_ValidString.call = function(gr,_bds,p_s) {
-	return new tardis.Go_utf8_ValidString(gr,_bds,p_s);
+tardis.Go_haxegoruntime_RunesToUTF16.call = function(gr,_bds,p_r) {
+	return new tardis.Go_haxegoruntime_RunesToUTF16(gr,_bds,p_r);
 }
-tardis.Go_utf8_ValidString.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf8_ValidString.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn4: function() {
-		var _t10;
-		this._t9 = this._t7.r1;
-		this._latestPH = 973;
-		_t10 = this._t9 == 1;
-		this._Next = _t10?5:1;
-	}
-	,SubFn3: function() {
-		this._latestPH = 972;
-		this._t6 = tardis.Force.toRawString(this._goroutine,tardis.Force.toUTF8slice(this._goroutine,this.p_s).subSlice(this._t3,-1));
-	}
-	,SubFn2: function() {
-		var _t5;
-		this._t3 = this._t1.r1;
-		this._t4 = this._t1.r2;
-		this._latestPH = 967;
-		_t5 = this._t4 == 65533;
-		this._Next = _t5?4:1;
-	}
-	,SubFn1: function() {
-		var _t2;
-		this._t1 = (function($this) {
-			var $r;
-			var _thisK = $this._t0.k;
-			$r = $this._t0.k >= $this._t0.v.len()?{ r0 : false, r1 : 0, r2 : 0}:(function($this) {
-				var $r;
-				var _dr = tardis.Go_utf8_DecodeRune.callFromRT($this._goroutine,$this._t0.v.subSlice(_thisK,-1));
-				$this._t0.k += _dr.r1;
-				$r = { r0 : true, r1 : js.Boot.__cast(_thisK , Int), r2 : js.Boot.__cast(_dr.r0 , Int)};
-				return $r;
-			}($this));
-			return $r;
-		}(this));
-		_t2 = this._t1.r0;
-		this._Next = _t2?2:3;
-	}
-	,SubFn0: function() {
-		this._latestPH = 966;
-		this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
-		this._Next = 1;
-	}
-	,run: function() {
+tardis.Go_haxegoruntime_RunesToUTF16.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_RunesToUTF16.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 965;
+				this._latestPH = 140;
 				this._latestBlock = 0;
-				this._latestPH = 966;
-				this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
-				this._Next = 1;
-				break;
-			case 1:
-				this._latestPH = 965;
-				this._latestBlock = 1;
-				this.SubFn1();
-				break;
-			case 2:
-				this._latestPH = 965;
-				this._latestBlock = 2;
-				this.SubFn2();
-				break;
-			case 3:
-				this._latestPH = 965;
-				this._latestBlock = 3;
-				this._latestPH = 978;
-				this._res = true;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 4:
-				this._latestPH = 978;
-				this._latestBlock = 4;
-				this._latestPH = 972;
-				this._t6 = tardis.Force.toRawString(this._goroutine,tardis.Force.toUTF8slice(this._goroutine,this.p_s).subSlice(this._t3,-1));
-				this._latestPH = 972;
-				this._SF1 = new tardis.Go_utf8_DecodeRuneInString(this._goroutine,[],this._t6);
+				this._latestPH = 141;
+				this._SF1 = new tardis.Go_utf16_Encode(this._goroutine,[],this.p_r);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 972;
+				this._latestPH = 141;
 				this._latestBlock = -1;
-				this._t7 = this._SF1.res();
-				this.SubFn4();
-				break;
-			case 5:
-				this._latestPH = 972;
-				this._latestBlock = 5;
-				this._latestPH = 974;
-				this._res = false;
+				this._t0 = this._SF1.res();
+				this._res = this._t0;
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -18661,418 +16478,79 @@ tardis.Go_utf8_ValidString.prototype = $extend(tardis.StackFrameBasis.prototype,
 	,res: function() {
 		return this._res;
 	}
-	,__class__: tardis.Go_utf8_ValidString
+	,__class__: tardis.Go_haxegoruntime_RunesToUTF16
 });
-tardis.Go_utf16_DecodeRune = function(gr,_bds,p_r1,p_r2) {
+tardis.Go_main_MouseUp = function(gr,_bds,p_x,p_y) {
 	this._Next = 0;
-	this._t8 = false;
-	this._t7 = false;
-	this._t6 = false;
-	this._t5 = 0;
-	this._t4 = 0;
-	this._t3 = 0;
-	this._t2 = 0;
-	this._t1 = 0;
-	this._t0 = false;
-	tardis.StackFrameBasis.call(this,gr,479,"Go_utf16_DecodeRune");
+	this._t5 = null;
+	this._t4 = null;
+	this._t3 = null;
+	this._t2 = null;
+	this._t1 = null;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,19,"Go_main_MouseUp");
 	this._bds = _bds;
-	this.p_r1 = p_r1;
-	this.p_r2 = p_r2;
+	this.p_x = p_x;
+	this.p_y = p_y;
 	tardis.Scheduler.push(gr,this);
 };
-$hxClasses["tardis.Go_utf16_DecodeRune"] = tardis.Go_utf16_DecodeRune;
-$hxExpose(tardis.Go_utf16_DecodeRune, "Go_utf16_DecodeRune");
-tardis.Go_utf16_DecodeRune.__name__ = ["tardis","Go_utf16_DecodeRune"];
-tardis.Go_utf16_DecodeRune.__interfaces__ = [tardis.StackFrame];
-tardis.Go_utf16_DecodeRune.callFromHaxe = function(p_r1,p_r2) {
+$hxClasses["tardis.Go_main_MouseUp"] = tardis.Go_main_MouseUp;
+$hxExpose(tardis.Go_main_MouseUp, "Go_main_MouseUp");
+tardis.Go_main_MouseUp.__name__ = ["tardis","Go_main_MouseUp"];
+tardis.Go_main_MouseUp.__interfaces__ = [tardis.StackFrame];
+tardis.Go_main_MouseUp.callFromHaxe = function(p_x,p_y) {
 	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_utf16_DecodeRune(0,[],p_r1,p_r2).run();
+	var _sf = new tardis.Go_main_MouseUp(0,[],p_x,p_y).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
 }
-tardis.Go_utf16_DecodeRune.callFromRT = function(_gr,p_r1,p_r2) {
-	var _sf = new tardis.Go_utf16_DecodeRune(_gr,[],p_r1,p_r2).run();
+tardis.Go_main_MouseUp.callFromRT = function(_gr,p_x,p_y) {
+	var _sf = new tardis.Go_main_MouseUp(_gr,[],p_x,p_y).run();
 	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
 		tardis.Scheduler.currentGR = _gr;
 		tardis.Scheduler.grStacks[_gr].first().run();
 	}
-	return _sf._res;
 }
-tardis.Go_utf16_DecodeRune.call = function(gr,_bds,p_r1,p_r2) {
-	return new tardis.Go_utf16_DecodeRune(gr,_bds,p_r1,p_r2);
+tardis.Go_main_MouseUp.call = function(gr,_bds,p_x,p_y) {
+	return new tardis.Go_main_MouseUp(gr,_bds,p_x,p_y);
 }
-tardis.Go_utf16_DecodeRune.__super__ = tardis.StackFrameBasis;
-tardis.Go_utf16_DecodeRune.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn4: function() {
-		var _t8;
-		_t8 = this.p_r1 < 56320;
-		this._Next = _t8?4:2;
-	}
-	,SubFn3: function() {
-		var _t7;
-		_t7 = 56320 <= this.p_r2;
-		this._Next = _t7?3:2;
-	}
-	,SubFn2: function() {
-		var _t6;
-		this._latestPH = 480;
-		_t6 = this.p_r2 < 57344;
-		this._Next = _t6?1:2;
-	}
-	,SubFn1: function() {
+tardis.Go_main_MouseUp.__super__ = tardis.StackFrameBasis;
+tardis.Go_main_MouseUp.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
 		var _t1;
 		var _t2;
 		var _t3;
 		var _t4;
-		this._latestPH = 481;
-		_t1 = tardis.Force.toInt32(this.p_r1 - 55296);
-		_t2 = _t1 << tardis.Int64.getLow(new tardis.Int64(0,10));
-		_t3 = tardis.Force.toInt32(this.p_r2 - 56320);
-		_t4 = tardis.Force.toInt32(_t2 | _t3);
-		this._t5 = tardis.Force.toInt32(_t4 + 65536);
-	}
-	,SubFn0: function() {
-		var _t0;
-		this._latestPH = 480;
-		_t0 = 55296 <= this.p_r1;
-		this._Next = _t0?5:2;
+		this._t0 = tardis.Go.main_mouseEvents.ref();
+		_t1 = new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			_v = [0,0.0,0.0];
+			$r = _v;
+			return $r;
+		}(this)));
+		_t2 = _t1.addr(0);
+		_t2.store(0);
+		_t3 = _t1.addr(1);
+		_t3.store(this.p_x);
+		_t4 = _t1.addr(2);
+		_t4.store(this.p_y);
+		this._t5 = _t1.ref();
 	}
 	,run: function() {
 		while(true) {
 			var _g = this;
 			switch(_g._Next) {
 			case 0:
-				this._latestPH = 479;
+				this._latestPH = 19;
 				this._latestBlock = 0;
 				this.SubFn0();
-				break;
-			case 1:
-				this._latestPH = 479;
-				this._latestBlock = 1;
-				this.SubFn1();
-				this._latestPH = 481;
-				this._res = this._t5;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 2:
-				this._latestPH = 481;
-				this._latestBlock = 2;
-				this._latestPH = 483;
-				this._res = 65533;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			case 3:
-				this._latestPH = 483;
-				this._latestBlock = 3;
-				this.SubFn2();
-				break;
-			case 4:
-				this._latestPH = 483;
-				this._latestBlock = 4;
-				this.SubFn3();
-				break;
-			case 5:
-				this._latestPH = 483;
-				this._latestBlock = 5;
-				this.SubFn4();
-				break;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_utf16_DecodeRune
-});
-tardis.Go_haxegoruntime_M3 = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,218,"Go_haxegoruntime_M3");
-	this._bds = _bds;
-	this.p_rx = p_rx;
-	this.p_typ = p_typ;
-	this.p_meth = p_meth;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_M3"] = tardis.Go_haxegoruntime_M3;
-$hxExpose(tardis.Go_haxegoruntime_M3, "Go_haxegoruntime_M3");
-tardis.Go_haxegoruntime_M3.__name__ = ["tardis","Go_haxegoruntime_M3"];
-tardis.Go_haxegoruntime_M3.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_M3.callFromHaxe = function(p_rx,p_typ,p_meth,p_a1,p_a2,p_a3) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_M3(0,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M3.callFromRT = function(_gr,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3) {
-	var _sf = new tardis.Go_haxegoruntime_M3(_gr,[],p_rx,p_typ,p_meth,p_a1,p_a2,p_a3).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_M3.call = function(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3) {
-	return new tardis.Go_haxegoruntime_M3(gr,_bds,p_rx,p_typ,p_meth,p_a1,p_a2,p_a3);
-}
-tardis.Go_haxegoruntime_M3.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_M3.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_meth);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 218;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_meth);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_M3
-});
-tardis._Go.Go_haxegoruntime_funcentry_go = function(gr,_bds,p_arg0) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,423,"Go_haxegoruntime_funcentry_go");
-	this._bds = _bds;
-	this.p_arg0 = p_arg0;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis._Go.Go_haxegoruntime_funcentry_go"] = tardis._Go.Go_haxegoruntime_funcentry_go;
-tardis._Go.Go_haxegoruntime_funcentry_go.__name__ = ["tardis","_Go","Go_haxegoruntime_funcentry_go"];
-tardis._Go.Go_haxegoruntime_funcentry_go.__interfaces__ = [tardis.StackFrame];
-tardis._Go.Go_haxegoruntime_funcentry_go.callFromHaxe = function(p_arg0) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis._Go.Go_haxegoruntime_funcentry_go(0,[],p_arg0).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_funcentry_go.callFromRT = function(_gr,p_arg0) {
-	var _sf = new tardis._Go.Go_haxegoruntime_funcentry_go(_gr,[],p_arg0).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis._Go.Go_haxegoruntime_funcentry_go.call = function(gr,_bds,p_arg0) {
-	return new tardis._Go.Go_haxegoruntime_funcentry_go(gr,_bds,p_arg0);
-}
-tardis._Go.Go_haxegoruntime_funcentry_go.__super__ = tardis.StackFrameBasis;
-tardis._Go.Go_haxegoruntime_funcentry_go.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.funcentry_go() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 423;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.funcentry_go() not yet implemented");
-				this._latestPH = 424;
-				tardis.Scheduler.panic(this._goroutine,this._t0);
 				this._Next = -1;
 				return this;
 			case -1:
-				this._latestPH = 424;
+				this._latestPH = 19;
 				this._latestBlock = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis._Go.Go_haxegoruntime_funcentry_go
-});
-tardis.Go_haxegoruntime_C6 = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,210,"Go_haxegoruntime_C6");
-	this._bds = _bds;
-	this.p_funcName = p_funcName;
-	this.p_a1 = p_a1;
-	this.p_a2 = p_a2;
-	this.p_a3 = p_a3;
-	this.p_a4 = p_a4;
-	this.p_a5 = p_a5;
-	this.p_a6 = p_a6;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_C6"] = tardis.Go_haxegoruntime_C6;
-$hxExpose(tardis.Go_haxegoruntime_C6, "Go_haxegoruntime_C6");
-tardis.Go_haxegoruntime_C6.__name__ = ["tardis","Go_haxegoruntime_C6"];
-tardis.Go_haxegoruntime_C6.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_C6.callFromHaxe = function(p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_C6(0,[],p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C6.callFromRT = function(_gr,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	var _sf = new tardis.Go_haxegoruntime_C6(_gr,[],p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_C6.call = function(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6) {
-	return new tardis.Go_haxegoruntime_C6(gr,_bds,p_funcName,p_a1,p_a2,p_a3,p_a4,p_a5,p_a6);
-}
-tardis.Go_haxegoruntime_C6.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_C6.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,this.p_funcName);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 210;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,this.p_funcName);
-				this._res = this._t0;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_C6
-});
-tardis.Go_haxegoruntime_FuncForPC = function(gr,_bds,p_pc) {
-	this._Next = 0;
-	this._t0 = null;
-	tardis.StackFrameBasis.call(this,gr,411,"Go_haxegoruntime_FuncForPC");
-	this._bds = _bds;
-	this.p_pc = p_pc;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_haxegoruntime_FuncForPC"] = tardis.Go_haxegoruntime_FuncForPC;
-$hxExpose(tardis.Go_haxegoruntime_FuncForPC, "Go_haxegoruntime_FuncForPC");
-tardis.Go_haxegoruntime_FuncForPC.__name__ = ["tardis","Go_haxegoruntime_FuncForPC"];
-tardis.Go_haxegoruntime_FuncForPC.__interfaces__ = [tardis.StackFrame];
-tardis.Go_haxegoruntime_FuncForPC.callFromHaxe = function(p_pc) {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_haxegoruntime_FuncForPC(0,[],p_pc).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_FuncForPC.callFromRT = function(_gr,p_pc) {
-	var _sf = new tardis.Go_haxegoruntime_FuncForPC(_gr,[],p_pc).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-	return _sf._res;
-}
-tardis.Go_haxegoruntime_FuncForPC.call = function(gr,_bds,p_pc) {
-	return new tardis.Go_haxegoruntime_FuncForPC(gr,_bds,p_pc);
-}
-tardis.Go_haxegoruntime_FuncForPC.__super__ = tardis.StackFrameBasis;
-tardis.Go_haxegoruntime_FuncForPC.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._t0 = new tardis.Interface(0,"runtime.FuncForPC() not yet implemented");
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 411;
-				this._latestBlock = 0;
-				this._t0 = new tardis.Interface(0,"runtime.FuncForPC() not yet implemented");
-				tardis.Scheduler.panic(this._goroutine,this._t0);
-				this._Next = -1;
-				return this;
-			case -1:
-				this._latestPH = 411;
-				this._latestBlock = -1;
-				this._incomplete = false;
-				tardis.Scheduler.pop(this._goroutine);
-				return this;
-			default:
-				tardis.Scheduler.bbi();
-			}
-		}
-	}
-	,res: function() {
-		return this._res;
-	}
-	,__class__: tardis.Go_haxegoruntime_FuncForPC
-});
-tardis.Go_main_MouseGoroutine = function(gr,_bds) {
-	this._Next = 0;
-	tardis.StackFrameBasis.call(this,gr,23,"Go_main_MouseGoroutine");
-	this._bds = _bds;
-	tardis.Scheduler.push(gr,this);
-};
-$hxClasses["tardis.Go_main_MouseGoroutine"] = tardis.Go_main_MouseGoroutine;
-$hxExpose(tardis.Go_main_MouseGoroutine, "Go_main_MouseGoroutine");
-tardis.Go_main_MouseGoroutine.__name__ = ["tardis","Go_main_MouseGoroutine"];
-tardis.Go_main_MouseGoroutine.__interfaces__ = [tardis.StackFrame];
-tardis.Go_main_MouseGoroutine.callFromHaxe = function() {
-	if(!tardis.Go.doneInit) tardis.Go.init();
-	var _sf = new tardis.Go_main_MouseGoroutine(0,[]).run();
-	while(_sf._incomplete) tardis.Scheduler.runAll();
-}
-tardis.Go_main_MouseGoroutine.callFromRT = function(_gr) {
-	var _sf = new tardis.Go_main_MouseGoroutine(_gr,[]).run();
-	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
-		tardis.Scheduler.currentGR = _gr;
-		tardis.Scheduler.grStacks[_gr].first().run();
-	}
-}
-tardis.Go_main_MouseGoroutine.call = function(gr,_bds) {
-	return new tardis.Go_main_MouseGoroutine(gr,_bds);
-}
-tardis.Go_main_MouseGoroutine.__super__ = tardis.StackFrameBasis;
-tardis.Go_main_MouseGoroutine.prototype = $extend(tardis.StackFrameBasis.prototype,{
-	SubFn0: function() {
-		this._latestPH = 24;
-		new tardis._Go.Go_main_handleMouse(tardis.Scheduler.makeGoroutine(),[]);
-	}
-	,run: function() {
-		while(true) {
-			var _g = this;
-			switch(_g._Next) {
-			case 0:
-				this._latestPH = 23;
-				this._latestBlock = 0;
-				this._latestPH = 24;
-				new tardis._Go.Go_main_handleMouse(tardis.Scheduler.makeGoroutine(),[]);
+				if(!this._t0.hasSpace()) return this;
+				this._t0.send(this._t5);
 				this._incomplete = false;
 				tardis.Scheduler.pop(this._goroutine);
 				return this;
@@ -19084,7 +16562,478 @@ tardis.Go_main_MouseGoroutine.prototype = $extend(tardis.StackFrameBasis.prototy
 	,res: function() {
 		return null;
 	}
-	,__class__: tardis.Go_main_MouseGoroutine
+	,__class__: tardis.Go_main_MouseUp
+});
+tardis.Go_utf8_DecodeRuneInString = function(gr,_bds,p_s) {
+	this._Next = 0;
+	this._t2 = 0;
+	this._t1 = 0;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,543,"Go_utf8_DecodeRuneInString");
+	this._bds = _bds;
+	this.p_s = p_s;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_DecodeRuneInString"] = tardis.Go_utf8_DecodeRuneInString;
+$hxExpose(tardis.Go_utf8_DecodeRuneInString, "Go_utf8_DecodeRuneInString");
+tardis.Go_utf8_DecodeRuneInString.__name__ = ["tardis","Go_utf8_DecodeRuneInString"];
+tardis.Go_utf8_DecodeRuneInString.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_DecodeRuneInString.callFromHaxe = function(p_s) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_DecodeRuneInString(0,[],p_s).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_DecodeRuneInString.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_utf8_DecodeRuneInString(_gr,[],p_s).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_DecodeRuneInString.call = function(gr,_bds,p_s) {
+	return new tardis.Go_utf8_DecodeRuneInString(gr,_bds,p_s);
+}
+tardis.Go_utf8_DecodeRuneInString.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_DecodeRuneInString.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		this._t1 = this._t0.r0;
+		this._t2 = this._t0.r1;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 543;
+				this._latestBlock = 0;
+				this._latestPH = 544;
+				this._SF1 = new tardis._Go.Go_utf8_decodeRuneInStringInternal(this._goroutine,[],this.p_s);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 544;
+				this._latestBlock = -1;
+				this._t0 = this._SF1.res();
+				this._t1 = this._t0.r0;
+				this._t2 = this._t0.r1;
+				this._latestPH = 545;
+				this._res = { r0 : this._t1, r1 : this._t2};
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_DecodeRuneInString
+});
+tardis._Go.Go_utf8_init = function(gr,_bds) {
+	this._Next = 0;
+	this._t0 = false;
+	tardis.StackFrameBasis.call(this,gr,545,"Go_utf8_init");
+	this._bds = _bds;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis._Go.Go_utf8_init"] = tardis._Go.Go_utf8_init;
+tardis._Go.Go_utf8_init.__name__ = ["tardis","_Go","Go_utf8_init"];
+tardis._Go.Go_utf8_init.__interfaces__ = [tardis.StackFrame];
+tardis._Go.Go_utf8_init.callFromHaxe = function() {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis._Go.Go_utf8_init(0,[]).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+}
+tardis._Go.Go_utf8_init.callFromRT = function(_gr) {
+	var _sf = new tardis._Go.Go_utf8_init(_gr,[]).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+}
+tardis._Go.Go_utf8_init.call = function(gr,_bds) {
+	return new tardis._Go.Go_utf8_init(gr,_bds);
+}
+tardis._Go.Go_utf8_init.__super__ = tardis.StackFrameBasis;
+tardis._Go.Go_utf8_init.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn1: function() {
+		tardis.Go.utf8_init_36_guard.store(true);
+		this._Next = 2;
+	}
+	,SubFn0: function() {
+		var _t0;
+		_t0 = tardis.Go.utf8_init_36_guard.ref();
+		this._Next = _t0?2:1;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 545;
+				this._latestBlock = 0;
+				this.SubFn0();
+				break;
+			case 1:
+				this._latestPH = 545;
+				this._latestBlock = 1;
+				tardis.Go.utf8_init_36_guard.store(true);
+				this._Next = 2;
+				break;
+			case 2:
+				this._latestPH = 545;
+				this._latestBlock = 2;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return null;
+	}
+	,__class__: tardis._Go.Go_utf8_init
+});
+tardis.Go_utf8_RuneCountInString = function(gr,_bds,p_s) {
+	this._Next = 0;
+	this._Phi = 0;
+	this._t4 = 0;
+	this._t3 = false;
+	this._t2 = null;
+	this._t1 = 0;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,696,"Go_utf8_RuneCountInString");
+	this._bds = _bds;
+	this.p_s = p_s;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_utf8_RuneCountInString"] = tardis.Go_utf8_RuneCountInString;
+$hxExpose(tardis.Go_utf8_RuneCountInString, "Go_utf8_RuneCountInString");
+tardis.Go_utf8_RuneCountInString.__name__ = ["tardis","Go_utf8_RuneCountInString"];
+tardis.Go_utf8_RuneCountInString.__interfaces__ = [tardis.StackFrame];
+tardis.Go_utf8_RuneCountInString.callFromHaxe = function(p_s) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_utf8_RuneCountInString(0,[],p_s).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_utf8_RuneCountInString.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_utf8_RuneCountInString(_gr,[],p_s).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_utf8_RuneCountInString.call = function(gr,_bds,p_s) {
+	return new tardis.Go_utf8_RuneCountInString(gr,_bds,p_s);
+}
+tardis.Go_utf8_RuneCountInString.__super__ = tardis.StackFrameBasis;
+tardis.Go_utf8_RuneCountInString.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn2: function() {
+		this._t4 = this._t1 + 1;
+		this._Next = 1;
+	}
+	,SubFn1: function() {
+		var _t2;
+		var _t3;
+		_t2 = (function($this) {
+			var $r;
+			var _thisK = $this._t0.k;
+			$r = $this._t0.k >= $this._t0.v.len()?{ r0 : false, r1 : 0, r2 : 0}:(function($this) {
+				var $r;
+				var _dr = tardis.Go_utf8_DecodeRune.callFromRT($this._goroutine,$this._t0.v.subSlice(_thisK,-1));
+				$this._t0.k += _dr.r1;
+				$r = { r0 : true, r1 : js.Boot.__cast(_thisK , Int), r2 : js.Boot.__cast(_dr.r0 , Int)};
+				return $r;
+			}($this));
+			return $r;
+		}(this));
+		_t3 = _t2.r0;
+		this._Next = _t3?2:3;
+	}
+	,SubFn0: function() {
+		this._latestPH = 697;
+		this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
+		this._Next = 1;
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 696;
+				this._latestBlock = 0;
+				this._latestPH = 697;
+				this._t0 = { k : 0, v : tardis.Force.toUTF8slice(this._goroutine,this.p_s)};
+				this._Next = 1;
+				this._Phi = 0;
+				break;
+			case 1:
+				this._latestPH = 696;
+				this._latestBlock = 1;
+				this._t1 = this._Phi == 0?0:this._Phi == 2?this._t4:0;
+				this.SubFn1();
+				this._Phi = 1;
+				break;
+			case 2:
+				this._latestPH = 696;
+				this._latestBlock = 2;
+				this._t4 = this._t1 + 1;
+				this._Next = 1;
+				this._Phi = 2;
+				break;
+			case 3:
+				this._latestPH = 696;
+				this._latestBlock = 3;
+				this._latestPH = 700;
+				this._res = this._t1;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_utf8_RuneCountInString
+});
+tardis.Go_haxegoruntime_UTF16toRunes = function(gr,_bds,p_s) {
+	this._Next = 0;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,100,"Go_haxegoruntime_UTF16toRunes");
+	this._bds = _bds;
+	this.p_s = p_s;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_haxegoruntime_UTF16toRunes"] = tardis.Go_haxegoruntime_UTF16toRunes;
+$hxExpose(tardis.Go_haxegoruntime_UTF16toRunes, "Go_haxegoruntime_UTF16toRunes");
+tardis.Go_haxegoruntime_UTF16toRunes.__name__ = ["tardis","Go_haxegoruntime_UTF16toRunes"];
+tardis.Go_haxegoruntime_UTF16toRunes.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_UTF16toRunes.callFromHaxe = function(p_s) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_haxegoruntime_UTF16toRunes(0,[],p_s).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_UTF16toRunes.callFromRT = function(_gr,p_s) {
+	var _sf = new tardis.Go_haxegoruntime_UTF16toRunes(_gr,[],p_s).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_UTF16toRunes.call = function(gr,_bds,p_s) {
+	return new tardis.Go_haxegoruntime_UTF16toRunes(gr,_bds,p_s);
+}
+tardis.Go_haxegoruntime_UTF16toRunes.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_UTF16toRunes.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 100;
+				this._latestBlock = 0;
+				this._latestPH = 101;
+				this._SF1 = new tardis.Go_utf16_Decode(this._goroutine,[],this.p_s);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 101;
+				this._latestBlock = -1;
+				this._t0 = this._SF1.res();
+				this._res = this._t0;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_haxegoruntime_UTF16toRunes
+});
+tardis.Go_haxegoruntime_Rune2Raw = function(gr,_bds,p_oneRune) {
+	this._Next = 0;
+	this._t2 = null;
+	this._t1 = null;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,178,"Go_haxegoruntime_Rune2Raw");
+	this._bds = _bds;
+	this.p_oneRune = p_oneRune;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_haxegoruntime_Rune2Raw"] = tardis.Go_haxegoruntime_Rune2Raw;
+$hxExpose(tardis.Go_haxegoruntime_Rune2Raw, "Go_haxegoruntime_Rune2Raw");
+tardis.Go_haxegoruntime_Rune2Raw.__name__ = ["tardis","Go_haxegoruntime_Rune2Raw"];
+tardis.Go_haxegoruntime_Rune2Raw.__interfaces__ = [tardis.StackFrame];
+tardis.Go_haxegoruntime_Rune2Raw.callFromHaxe = function(p_oneRune) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_haxegoruntime_Rune2Raw(0,[],p_oneRune).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_Rune2Raw.callFromRT = function(_gr,p_oneRune) {
+	var _sf = new tardis.Go_haxegoruntime_Rune2Raw(_gr,[],p_oneRune).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+	return _sf._res;
+}
+tardis.Go_haxegoruntime_Rune2Raw.call = function(gr,_bds,p_oneRune) {
+	return new tardis.Go_haxegoruntime_Rune2Raw(gr,_bds,p_oneRune);
+}
+tardis.Go_haxegoruntime_Rune2Raw.__super__ = tardis.StackFrameBasis;
+tardis.Go_haxegoruntime_Rune2Raw.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		var _t1;
+		this._latestPH = 179;
+		this._t0 = new tardis.Slice(new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			{
+				var _g = 0;
+				while(_g < 1) {
+					var _i = _g++;
+					_v[_i] = 0;
+				}
+			}
+			$r = _v;
+			return $r;
+		}(this))),0,1);
+		this._latestPH = 180;
+		if(0 >= this._t0.len()) tardis.Scheduler.ioor();
+		_t1 = this._t0.addr(0);
+		_t1.store(this.p_oneRune);
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 178;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._latestPH = 181;
+				this._SF1 = new tardis.Go_haxegoruntime_Runes2Raw(this._goroutine,[],this._t0);
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 181;
+				this._latestBlock = -1;
+				this._t2 = this._SF1.res();
+				this._res = this._t2;
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return this._res;
+	}
+	,__class__: tardis.Go_haxegoruntime_Rune2Raw
+});
+tardis.Go_main_MouseMove = function(gr,_bds,p_x,p_y) {
+	this._Next = 0;
+	this._t5 = null;
+	this._t4 = null;
+	this._t3 = null;
+	this._t2 = null;
+	this._t1 = null;
+	this._t0 = null;
+	tardis.StackFrameBasis.call(this,gr,21,"Go_main_MouseMove");
+	this._bds = _bds;
+	this.p_x = p_x;
+	this.p_y = p_y;
+	tardis.Scheduler.push(gr,this);
+};
+$hxClasses["tardis.Go_main_MouseMove"] = tardis.Go_main_MouseMove;
+$hxExpose(tardis.Go_main_MouseMove, "Go_main_MouseMove");
+tardis.Go_main_MouseMove.__name__ = ["tardis","Go_main_MouseMove"];
+tardis.Go_main_MouseMove.__interfaces__ = [tardis.StackFrame];
+tardis.Go_main_MouseMove.callFromHaxe = function(p_x,p_y) {
+	if(!tardis.Go.doneInit) tardis.Go.init();
+	var _sf = new tardis.Go_main_MouseMove(0,[],p_x,p_y).run();
+	while(_sf._incomplete) tardis.Scheduler.runAll();
+}
+tardis.Go_main_MouseMove.callFromRT = function(_gr,p_x,p_y) {
+	var _sf = new tardis.Go_main_MouseMove(_gr,[],p_x,p_y).run();
+	while(_sf._incomplete) if(tardis.Scheduler.grStacks[_gr].first() == null) throw "Panic:" + Std.string(tardis.Scheduler.grPanicMsg) + "\nScheduler: null stack entry for goroutine " + _gr + "\n" + tardis.Scheduler.stackDump(); else {
+		tardis.Scheduler.currentGR = _gr;
+		tardis.Scheduler.grStacks[_gr].first().run();
+	}
+}
+tardis.Go_main_MouseMove.call = function(gr,_bds,p_x,p_y) {
+	return new tardis.Go_main_MouseMove(gr,_bds,p_x,p_y);
+}
+tardis.Go_main_MouseMove.__super__ = tardis.StackFrameBasis;
+tardis.Go_main_MouseMove.prototype = $extend(tardis.StackFrameBasis.prototype,{
+	SubFn0: function() {
+		var _t1;
+		var _t2;
+		var _t3;
+		var _t4;
+		this._t0 = tardis.Go.main_mouseEvents.ref();
+		_t1 = new tardis.Pointer((function($this) {
+			var $r;
+			var _v = new Array();
+			_v = [0,0.0,0.0];
+			$r = _v;
+			return $r;
+		}(this)));
+		_t2 = _t1.addr(0);
+		_t2.store(2);
+		_t3 = _t1.addr(1);
+		_t3.store(this.p_x);
+		_t4 = _t1.addr(2);
+		_t4.store(this.p_y);
+		this._t5 = _t1.ref();
+	}
+	,run: function() {
+		while(true) {
+			var _g = this;
+			switch(_g._Next) {
+			case 0:
+				this._latestPH = 21;
+				this._latestBlock = 0;
+				this.SubFn0();
+				this._Next = -1;
+				return this;
+			case -1:
+				this._latestPH = 21;
+				this._latestBlock = -1;
+				if(!this._t0.hasSpace()) return this;
+				this._t0.send(this._t5);
+				this._incomplete = false;
+				tardis.Scheduler.pop(this._goroutine);
+				return this;
+			default:
+				tardis.Scheduler.bbi();
+			}
+		}
+	}
+	,res: function() {
+		return null;
+	}
+	,__class__: tardis.Go_main_MouseMove
 });
 tardis.Go = function() { }
 $hxClasses["tardis.Go"] = tardis.Go;
@@ -19102,6 +17051,7 @@ tardis.Go.init = function() {
 	var _sf = new tardis._Go.Go_main_init(gr,[]).run();
 	while(_sf._incomplete) tardis.Scheduler.runAll();
 	tardis.Scheduler.doneInit = true;
+	tardis.Go.haxegoruntime_ZiLen.store("字".length);
 }
 tardis.Go.main = function() {
 	tardis._Go.Go_main_main.callFromHaxe();
@@ -19113,63 +17063,33 @@ tardis.Go.CPos = function(pos) {
 		pos = -pos;
 		prefix = "near ";
 	}
-	if(pos > 993) return prefix + "/Users/elliott/go/src/github.com/elliott5/gohaxelib/hxutil/hxutil.go:" + Std.string(pos - 993); else if(pos > 550) return prefix + "/usr/local/go/src/pkg/unicode/utf8/utf8.go:" + Std.string(pos - 550); else if(pos > 442) return prefix + "/usr/local/go/src/pkg/unicode/utf16/utf16.go:" + Std.string(pos - 442); else if(pos > 62) return prefix + "goruntime.go:" + Std.string(pos - 62); else if(pos > 0) return prefix + "main.go:" + Std.string(pos); else return "(invalid pogo.PosHash:" + Std.string(pos) + ")";
+	if(pos > 314) return prefix + "/usr/local/go/src/pkg/unicode/utf8/utf8.go:" + Std.string(pos - 314); else if(pos > 206) return prefix + "/usr/local/go/src/pkg/unicode/utf16/utf16.go:" + Std.string(pos - 206); else if(pos > 62) return prefix + "/Users/elliott/go/src/github.com/tardisgo/tardisgo/haxe/haxegoruntime/haxegoruntime.go:" + Std.string(pos - 62); else if(pos > 0) return prefix + "mouse.go:" + Std.string(pos); else return "(invalid pogo.PosHash:" + Std.string(pos) + ")";
 }
 tardis.TypeInfo = function() { }
 $hxClasses["tardis.TypeInfo"] = tardis.TypeInfo;
 tardis.TypeInfo.__name__ = ["tardis","TypeInfo"];
 tardis.TypeInfo.getName = function(id) {
-	switch(id) {
-	case 0:
-		return "string";
-	default:
-		return "UNKNOWN";
-	}
+	return "UNKNOWN";
 }
 tardis.TypeInfo.typeString = function(i) {
 	return tardis.TypeInfo.getName(i.typ);
 }
 tardis.TypeInfo.getId = function(name) {
-	switch(name) {
-	case "string":
-		return 0;
-	default:
-		return -1;
-	}
+	return -1;
 }
 tardis.TypeInfo.isAssignableTo = function(v,t) {
 	if(v == t) return true;
-	switch(v) {
-	case 0:
-		return false;
-	default:
-		return false;
-	}
+	return false;
 }
 tardis.TypeInfo.isIdentical = function(v,t) {
 	if(v == t) return true;
-	switch(v) {
-	case 0:
-		return false;
-	default:
-		return false;
-	}
+	return false;
 }
 tardis.TypeInfo.isConcrete = function(t) {
-	switch(t) {
-	case 0:
-		return true;
-	default:
-		return false;
-	}
+	return false;
 }
 tardis.TypeInfo.zeroValue = function(t) {
-	switch(t) {
-	case 0:
-		return "";
-	default:
-		return null;
-	}
+	return null;
 }
 tardis.TypeInfo.method = function(t,m) {
 	tardis.Scheduler.panicFromHaxe("no method found!");
@@ -19645,15 +17565,17 @@ tardis.Scheduler.grPanicMsg = new Array();
 tardis.Scheduler.panicStackDump = "";
 tardis.Scheduler.entryCount = 0;
 tardis.Scheduler.currentGR = 0;
+tardis.Go.utf8_UTFMax = 4;
+tardis.Go.utf8_RuneError = 65533;
+tardis.Go.utf8_RuneSelf = 128;
+tardis.Go.utf8_MaxRune = 1114111;
 tardis.Go.main_MOUSE_UP = 0;
 tardis.Go.main_MOUSE_MOVE = 2;
 tardis.Go.main_MOUSE_DOWN = 1;
-tardis.Go.utf8_RuneSelf = 128;
-tardis.Go.utf8_RuneError = 65533;
-tardis.Go.utf8_MaxRune = 1114111;
-tardis.Go.utf8_UTFMax = 4;
-tardis.Go.haxegoruntime_init_36_guard = new tardis.Pointer(false);
+tardis.Go.utf16_init_36_guard = new tardis.Pointer(false);
+tardis.Go.utf8_init_36_guard = new tardis.Pointer(false);
 tardis.Go.haxegoruntime_ZiLen = new tardis.Pointer(0);
+tardis.Go.haxegoruntime_init_36_guard = new tardis.Pointer(false);
 tardis.Go.main_mouseEvents = new tardis.Pointer(null);
 tardis.Go.main_cacheOffsetY = new tardis.Pointer(0.0);
 tardis.Go.main_cacheOffsetX = new tardis.Pointer(0.0);
@@ -19661,9 +17583,6 @@ tardis.Go.main_init_36_guard = new tardis.Pointer(false);
 tardis.Go.main_SpriteY = new tardis.Pointer(0.0);
 tardis.Go.main_Status = new tardis.Pointer("");
 tardis.Go.main_SpriteX = new tardis.Pointer(0.0);
-tardis.Go.utf16_init_36_guard = new tardis.Pointer(false);
-tardis.Go.utf8_init_36_guard = new tardis.Pointer(false);
-tardis.Go.hxutil_init_36_guard = new tardis.Pointer(false);
 tardis.Go.doneInit = false;
 ApplicationMain.main();
 function $hxExpose(src, path) {
