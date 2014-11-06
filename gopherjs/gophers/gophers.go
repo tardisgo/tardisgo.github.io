@@ -1,4 +1,6 @@
-// rewrite for GopherJS by @elliottstoneham
+// rewrite for GopherJS by @elliottstoneham who holds the copyright
+// for licence please see http://tardisgo.github.io/LICENSE
+
 // animation inspired by http://blog.golang.org/concurrency-is-not-parallelism
 // gopher logo by Renée French
 
