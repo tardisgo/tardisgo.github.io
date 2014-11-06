@@ -7,6 +7,7 @@ package main
 import (
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -333,29 +334,20 @@ func monitor() {
 	}
 }
 
-var gosched_chan = make(chan bool, 1)
-var gosched_full bool
-
-// Gosched schedules other goroutines.
+// Gosched both schedules other goroutines and also shows their state.
 func Gosched() {
 	monitor()
-	if gosched_full {
-		gosched_full = false
-		gosched_chan <- true
-	} else {
-		gosched_full = true
-		<-gosched_chan
-	}
-}
-
-var RAF_chan = make(chan bool, 1)
-
-func RAF_callback() {
-	go func() { RAF_chan <- true }()
+	time.Sleep(0)
 }
 
 // RAF - Request Animation Frame
 func RAF() {
 	js.Global.Get("window").Call("requestAnimationFrame", RAF_callback)
 	<-RAF_chan
+}
+
+var RAF_chan = make(chan bool)
+
+func RAF_callback() {
+	go func() { RAF_chan <- true }()
 }
