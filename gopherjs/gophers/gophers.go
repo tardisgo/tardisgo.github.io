@@ -1,8 +1,9 @@
-// rewrite for GopherJS by @elliottstoneham who holds the copyright
-// for licence please see http://tardisgo.github.io/LICENSE
+// Rewrite of the animation at http://tardisgo.github.io for GopherJS by @elliottstoneham who holds the copyright.
+// For licence please see http://tardisgo.github.io/LICENSE.
 
-// animation inspired by http://blog.golang.org/concurrency-is-not-parallelism
-// gopher logo by Renée French
+// Animation inspired by http://blog.golang.org/concurrency-is-not-parallelism.
+// Gopher logo by Renée French. The design is licensed under the Creative Commons 3.0 Attributions license.
+// For more details see http://blog.golang.org/gopher.
 
 package main
 
@@ -32,18 +33,18 @@ const ( // constants for the state of a gopher, also used by Haxe code
 
 // This function is called to set-off the gophers
 func startGophers() {
-	bigpile = make(chan int, 1)
-	bigpile <- 1 // start low, so that left-hand gopher moves fast
-
-	smallpile = make(chan int, 1)
-	smallpile <- 10 // start high, so that right-hand gopher moves slow
-
-	oven = make(chan int, 1)
-	go fire() // burn everything that arrives!
+	bigpile = make(chan int)
+	smallpile = make(chan int, 1) // len() does not work in GopherJS without a length of 1
+	oven = make(chan int)
 
 	// now start off the two gophers
 	go gopher(&Sprite1X, &Sprite1Y, &Sprite1state, bigpile, smallpile)
 	go gopher(&Sprite2X, &Sprite2Y, &Sprite2state, smallpile, oven)
+
+	go fire() // burn everything that arrives!
+
+	bigpile <- 1     // start low, so that left-hand gopher moves fast
+	smallpile <- 10  // start high, so that right-hand gopher moves slow
 	go fillbigpile() // keep adding randomly to the big pile
 }
 
@@ -61,7 +62,7 @@ func fire() {
 	}
 }
 
-// an individual gopher, animated with logos by the Haxe code
+// an individual gopher, animated with logos by the GopherJS code
 func gopher(x, y *float64, state *int, in, out chan int) {
 	for {
 		cartLoad := pickBooks(x, y, state, in)
@@ -115,7 +116,6 @@ func moreBooks(x, y *float64, state *int) {
 	*y = 0.0
 }
 func loop(n int) { // add some delay when required
-	n *= 1 // biger delay than in TARDIS Go
 	for n > 0 {
 		n--
 		Gosched() // give up control in order to show the gopher waiting
@@ -124,7 +124,6 @@ func loop(n int) { // add some delay when required
 
 /**** JS interface code ****/
 
-var headline, goTimer js.Object
 var Books, Logo1, Logo2, Sprite1, Sprite2 *Sprite
 
 const (
@@ -173,6 +172,20 @@ var emptyPilePng, smallPilePng, pickPng1, pickPng2, fullPng1, fullPng2, emptyPng
 
 var context js.Object
 
+var lastTime time.Time
+
+// headline at the top
+func makeHeadline() {
+	now := time.Now()
+
+	if now.Minute() != lastTime.Minute() {
+		makeText(false, 200, 10, 500, 50, 0x008000,
+			"Written in Go, compiled by GopherJS and run live on "+
+				now.Format("Jan 2, 2006 at 3:04pm (MST)"))
+		lastTime = now
+	}
+}
+
 func Start() {
 	doc := js.Global.Get("document")
 	canvas := doc.Call("getElementById", "myCanvas")
@@ -192,8 +205,7 @@ func Start() {
 	white = makeBitmap("assets/white.png")
 	WT = makeBitmap("assets/whitethumb.png")
 
-	// headline at the top
-	headline = makeText(false, 200, 10, 500, 50, 0x008000, "")
+	makeHeadline()
 
 	// Explation text on the left
 	makeText(false, 10, 140, 180, 200, 0x008000, `Both animated gophers are 
@@ -336,7 +348,7 @@ func monitor() {
 	}
 }
 
-// Gosched both schedules other goroutines and also shows their state.
+// Gosched both schedules other goroutines and shows their state.
 func Gosched() {
 	monitor()
 	time.Sleep(0)
