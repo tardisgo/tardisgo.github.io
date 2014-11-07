@@ -179,7 +179,7 @@ func makeHeadline() {
 	now := time.Now()
 
 	if now.Minute() != lastTime.Minute() {
-		makeText(false, 200, 10, 500, 50, 0x008000,
+		makeText(false, 195, 15, 500, 50, 0x008000,
 			"Written in Go, compiled by GopherJS and run live on "+
 				now.Format("Jan 2, 2006 at 3:04pm (MST)"))
 		lastTime = now
